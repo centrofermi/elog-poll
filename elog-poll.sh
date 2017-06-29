@@ -95,15 +95,16 @@ function handler() {
 }
 
 # Script begins here
+if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
+  show_help
+  exit 0
+fi
+
 check_config || exit 1
 
 if [ -n "$1" ]; then
-  if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
-    show_help
-  else
-    # Handle a specific ELOG ID
-    get_post "$1" | handler
-  fi
+  # Handle a specific ELOG ID
+  get_post "$1" | handler
 else
   trap on_exit EXIT
   # Handle the whole archive from the last checked
