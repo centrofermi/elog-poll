@@ -1,0 +1,12 @@
+language: bash
+sudo: required
+services:
+  - docker
+dist: trusty
+
+before_install:
+  - docker pull peterdavehello/debian-8-shellcheck
+  - sudo apt-get install -y shellcheck
+
+script:
+  - docker run --rm -v $(pwd):/code peterdavehello/debian-8-shellcheck bash -c 'shellcheck /code/*.sh'
