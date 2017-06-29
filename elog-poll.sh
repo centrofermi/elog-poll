@@ -65,6 +65,11 @@ function check_config() {
   return 0
 }
 
+function on_exit() {
+  set_last_post_id "${ID}"
+  echo "Bye!"
+}
+
 function get_last_post_id() {
   [ ! -e "${ELOG_LAST_POST}" ] && echo 1 > "${ELOG_LAST_POST}"
   cat "${ELOG_LAST_POST}"
@@ -100,12 +105,12 @@ if [ -n "$1" ]; then
     get_post "$1" | handler
   fi
 else
+  trap on_exit EXIT
   # Handle the whole archive from the last checked
   ID=$(get_last_post_id)
   while true; do
     get_post "${ID}" | handler || break
     ((++ID))
   done
-  set_last_post_id $ID
 fi
 
