@@ -19,6 +19,9 @@ before_install:
   - eval "${MATRIX_EVAL}"
   - docker pull peterdavehello/debian-8-shellcheck
 
+script:
+  - echo
+
 jobs:
   include:
     - stage: check
