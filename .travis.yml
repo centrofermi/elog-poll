@@ -21,7 +21,6 @@ matrix:
 before_install:
   - eval "${MATRIX_EVAL}"
   - docker pull peterdavehello/debian-8-shellcheck
-  - sudo apt-get install -y shellcheck
 
 jobs:
   include:
