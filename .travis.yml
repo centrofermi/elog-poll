@@ -35,6 +35,5 @@ jobs:
         - export CXX=g++-4.9
         - cmake ../
         - make
-    - stage: test
-      script:
+        - cd ..
         - cat test/post.txt | build/elog-parse "%[id]"
