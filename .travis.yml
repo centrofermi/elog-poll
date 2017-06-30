@@ -1,4 +1,4 @@
-language: bash
+language: cpp
 
 sudo: required
 
@@ -15,9 +15,6 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       - g++-4.9
-      - cmake
-      - cmake-data
-      - make
 
 before_install:
   - docker pull peterdavehello/debian-8-shellcheck
