@@ -3,23 +3,18 @@ sudo: required
 services:
   - docker
 dist: trusty
-matrix:
-  include:
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-4.9
-            - cmake
-            - cmake-data
-            - make
-      env:
-        - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
+os: linux
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-4.9
+      - cmake
+      - cmake-data
+      - make
 
 before_install:
-  - eval "${MATRIX_EVAL}"
   - docker pull peterdavehello/debian-8-shellcheck
 
 jobs:
@@ -31,6 +26,8 @@ jobs:
       script:
         - mkdir build
         - cd build
+        - export CC=gcc-4.9
+        - export CXX=g++-4.9
         - cmake ../
         - make
     - stage: test
