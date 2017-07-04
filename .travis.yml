@@ -18,12 +18,14 @@ addons:
 
 before_install:
   - docker pull peterdavehello/debian-8-shellcheck
+  - docker pull buddaci/cppcheck
 
 jobs:
   include:
     - stage: check
       script:
         - docker run --rm -v $(pwd):/code peterdavehello/debian-8-shellcheck bash -c 'shellcheck /code/*.sh'
+        - docker run --rm -v $(pwd):/code buddaci/cppcheck cppcheck /code/src/
     - stage: build
       script:
         - mkdir build
