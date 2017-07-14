@@ -59,14 +59,23 @@ std::string compile(std::string const& input, elog::post const& post)
 int main(int argc, char* argv[])
 {
   try {
-    elog::post const post = elog::make_post(std::cin);
+    if (argc > 1) {
+      elog::post const post = elog::make_post(std::cin);
 
-    auto const output = compile(
-        argc > 1 ? argv[1] : "%[id] %[message]"
-      , post
-    );
+      auto const output = compile(
+          argv[1]
+        , post
+      );
 
-    std::cout << output << '\n';
+      std::cout << output << '\n';
+    } else {
+      std::cin >> std::noskipws;
+      std::copy(
+          std::istream_iterator<char>(std::cin)
+        , std::istream_iterator<char>()
+        , std::ostream_iterator<char>(std::cout)
+      );
+    }
   } catch (std::exception const& e) {
     std::cerr << e.what() << '\n';
     return EXIT_FAILURE;
