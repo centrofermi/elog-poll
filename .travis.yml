@@ -36,3 +36,4 @@ jobs:
         - cd ..
         - '[ "$(cat test/post.txt | build/elog-parse "%[id]")" == "1" ]'
         - '[ "$(cat test/post.txt | build/elog-parse "%[Cut 1]")" == "E > 10" ]'
+        - '[ "$(cat test/post.txt | build/elog-parse)" == "$(cat test/post.txt)" ]'
