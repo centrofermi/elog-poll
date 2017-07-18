@@ -5,7 +5,7 @@
 
 std::string compile(std::string const& input, elog::post const& post)
 {
-  std::regex const placeholder_regex {"\\%\\[[ a-zA-Z0-9]*\\]"};
+  std::regex const placeholder_regex {"\\%\\[[ a-zA-Z0-9()]*\\]"};
 
   auto begin = std::sregex_iterator(
       std::begin(input)
