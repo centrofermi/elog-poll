@@ -37,3 +37,4 @@ jobs:
         - '[ "$(cat test/post.txt | build/elog-parse "%[id]")" == "1" ]'
         - '[ "$(cat test/post.txt | build/elog-parse "%[Cut 1]")" == "E > 10" ]'
         - '[ "$(cat test/post.txt | build/elog-parse)" == "$(cat test/post.txt)" ]'
+        - '[ "$(cat test/post.txt | build/elog-parse "%[Parameter with (parentheses)]")" == "4" ]'
