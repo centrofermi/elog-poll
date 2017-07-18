@@ -18,8 +18,8 @@ std::string compile(std::string const& input, elog::post const& post)
 
   std::vector<std::sregex_iterator> v(nmatches);
 
-  for (auto i = 0; i != nmatches; ++i) {
-    v[i] = begin++;
+  for (auto& x : v) {
+    x = begin++;
   }
 
   std::string out = input;
