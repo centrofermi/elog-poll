@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
              "   -c: check the validity of the post and exit\n"
              "   -r: check that the message is a reply and exit\n"
              " text: manipulate the provided text replacing any occurrence"
-             " of %[var] with the\n"
+             " of %[attr] with the\n"
              "       corresponding elog message attribute value\n\n"
              "If a file name is provided messages are read from it"
              " otherwise standard input\n"
