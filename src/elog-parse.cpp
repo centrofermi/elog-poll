@@ -82,6 +82,15 @@ int main(int argc, char* argv[])
              "If a file name is provided messages are read from it"
              " otherwise standard input\n"
              "is used\n";
+      } else if (std::strcmp(argv[1], "-c") == 0) {
+        try {
+          elog::make_post(input);
+          return EXIT_SUCCESS;
+        } catch (...) {
+          return EXIT_FAILURE;
+        }
+      } else if (std::strcmp(argv[1], "-r") == 0) {
+        return is_reply(elog::make_post(input));
       } else {
         elog::post const post = elog::make_post(input);
 
