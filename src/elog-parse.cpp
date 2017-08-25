@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <regex>
 #include <cstring>
@@ -61,6 +62,11 @@ int main(int argc, char* argv[])
 {
   try {
     if (argc > 1) {
+      std::ifstream file;
+      std::istream& input
+        = argc == 2
+        ? static_cast<std::istream&>(std::cin)
+        : static_cast<std::istream&>((file.open(argv[2]), file));
 
       if (std::strcmp(argv[1], "-h") == 0) {
         std::cout
@@ -77,7 +83,7 @@ int main(int argc, char* argv[])
              " otherwise standard input\n"
              "is used\n";
       } else {
-        elog::post const post = elog::make_post(std::cin);
+        elog::post const post = elog::make_post(input);
 
         auto const output = compile(
             argv[1]
