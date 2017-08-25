@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <regex>
+#include <cstring>
 #include "elog.hpp"
 
 std::string compile(std::string const& input, elog::post const& post)
@@ -60,14 +61,31 @@ int main(int argc, char* argv[])
 {
   try {
     if (argc > 1) {
-      elog::post const post = elog::make_post(std::cin);
 
-      auto const output = compile(
-          argv[1]
-        , post
-      );
+      if (std::strcmp(argv[1], "-h") == 0) {
+        std::cout
+          << "Elog post reader with text manipulation capabilities\n\n"
+             "Usage:\n"
+          << argv[0] << "[-h|-c|-r|text] [filename]\n"
+          << "   -h: show this help and exit\n"
+             "   -c: check the validity of the post and exit\n"
+             "   -r: check that the message is a reply and exit\n"
+             " text: manipulate the provided text replacing any occurrence"
+             " of %[var] with the\n"
+             "       corresponding elog message attribute value\n\n"
+             "If a file name is provided messages are read from it"
+             " otherwise standard input\n"
+             "is used\n";
+      } else {
+        elog::post const post = elog::make_post(std::cin);
 
-      std::cout << output << '\n';
+        auto const output = compile(
+            argv[1]
+          , post
+        );
+
+        std::cout << output << '\n';
+      }
     } else {
       std::cin >> std::noskipws;
       std::copy(
