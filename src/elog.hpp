@@ -56,6 +56,12 @@ int has_reply(post const& p)
   return it == p.metadata().end() ? 0 : std::stoi(it->second);
 }
 
+inline
+bool is_draft(post const& p)
+{
+  return p.metadata().count("Draft");
+}
+
 post make_post(std::istream& input);
 
 } // ns elog
