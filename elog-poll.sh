@@ -96,7 +96,7 @@ function reply_post() {
   shift 2
 
   local attachments=""
-  for item in $*; do
+  for item in "$@"; do
     attachments="${attachments} -f ${item}"
   done
 
