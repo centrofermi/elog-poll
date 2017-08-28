@@ -72,10 +72,11 @@ int main(int argc, char* argv[])
         std::cout
           << "Elog post reader with text manipulation capabilities\n\n"
              "Usage:\n"
-          << argv[0] << "[-h|-c|-r|text] [filename]\n"
+          << argv[0] << "[-h|-c|-r|-d|text] [filename]\n"
           << "   -h: show this help and exit\n"
              "   -c: check the validity of the post and exit\n"
              "   -r: check that the message is a reply and exit\n"
+             "   -d: check that the message is a draft and exit\n"
              " text: manipulate the provided text replacing any occurrence"
              " of %[attr] with the\n"
              "       corresponding elog message attribute value\n\n"
@@ -91,6 +92,8 @@ int main(int argc, char* argv[])
         }
       } else if (std::strcmp(argv[1], "-r") == 0) {
         return is_reply(elog::make_post(input)) ? EXIT_SUCCESS : EXIT_FAILURE;
+      } else if (std::strcmp(argv[1], "-d") == 0) {
+        return is_draft(elog::make_post(input)) ? EXIT_SUCCESS : EXIT_FAILURE;
       } else {
         elog::post const post = elog::make_post(input);
 
