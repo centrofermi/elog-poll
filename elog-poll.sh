@@ -90,6 +90,19 @@ function get_post() {
     -u "${ELOG_USER}" "${ELOG_PASSWORD}"
 }
 
+function reply_post() {
+  local ID=$1
+  local message="$2"
+  local ssl=""
+  [ "${ELOG_USES_SSL}" == "y" ] && ssl="-s"
+
+  ${ELOG_EXE}                             \
+    -r "${ID}" -l "${ELOG_BOOK}" "${ssl}" \
+    -h "${ELOG_SERVER}" -p "${ELOG_PORT}" \
+    -u "${ELOG_USER}" "${ELOG_PASSWORD}"  \
+    "${message}"
+}
+
 function handler() {
   echo "Implement me!"
 }
