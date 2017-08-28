@@ -93,6 +93,13 @@ function get_post() {
 function reply_post() {
   local ID=$1
   local message="$2"
+  shift 2
+
+  local attachments=""
+  for item in $*; do
+    attachments="${attachments} -f ${item}"
+  done
+
   local ssl=""
   [ "${ELOG_USES_SSL}" == "y" ] && ssl="-s"
 
@@ -100,7 +107,7 @@ function reply_post() {
     -r "${ID}" -l "${ELOG_BOOK}" "${ssl}" \
     -h "${ELOG_SERVER}" -p "${ELOG_PORT}" \
     -u "${ELOG_USER}" "${ELOG_PASSWORD}"  \
-    "${message}"
+    ${attachments} "${message}"
 }
 
 function handler() {
