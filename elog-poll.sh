@@ -128,6 +128,31 @@ function handler() {
 
   echo "${data}" | "${ELOG_PARSER}" -c || return ${INVALID_EC}
   echo "${data}" | "${ELOG_PARSER}" -r && return ${REPLY_EC}
+
+  local -r id="$(echo "${data}" | "${ELOG_PARSER}" '%[id]')"
+  local -r start_time="$(echo "${data}" | "${ELOG_PARSER}" '%[Start time]')"
+  local -r stop_time="$(echo "${data}" | "${ELOG_PARSER}" '%[Stop time]')"
+
+  local -r start_date="$(epoch2date "${start_time}")"
+  local -r stop_date="$(epoch2date "${stop_time}")"
+
+  local -r cut="$(echo "${data}" | "${ELOG_PARSER}" '%[Cut]')"
+  local -r format="$(echo "${data}" | "${ELOG_PARSER}" '%[Output format]')"
+  local -r telescope_id="$(echo "${data}" | "${ELOG_PARSER}" '%[Telescope ID]')"
+
+  local -r param_types=(I I I F F F F F F)
+  local -r parameters=(RunNumber Seconds Nanoseconds Theta Phi ChiSquare \
+                       TimeOfFlight TrackLength DeltaTime)
+
+  local options=()
+  for ((i = 0; i < "${#parameters[@]}"; ++i)); do
+    local parameter="${parameters[$i]}"
+    local type="${param_types[$i]}"
+
+    if [ "$(echo "${data}" | "${ELOG_PARSER}" "%[${parameter}]")" == "1" ]; then
+      options+=("${type}" "${parameter}")
+    fi
+  done
 }
 
 # Script begins here
