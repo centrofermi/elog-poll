@@ -119,6 +119,10 @@ function reply_post() {
     "${attachments[@]}" "${message}"
 }
 
+function epoch2date() {
+  date +%Y-%m-%d -d @$1
+}
+
 function handler() {
   local -r data="$(cat)"
 
