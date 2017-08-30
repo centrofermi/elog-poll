@@ -21,6 +21,8 @@
 # - ELOG_PASSWORD  -> Password of the user specified in the variable above
 # - ELOG_LAST_POST -> Path of the file containing the id of the first post
 #                     to check
+# - ELOG_PARSER    -> Path to the elog-parse executable
+# - ELOG_PRODUCER  -> Path to the data producer executable
 #
 
 # The user may want to set the configuration variables here
@@ -32,6 +34,8 @@
 #ELOG_USER=
 #ELOG_PASSWORD=
 #ELOG_LAST_POST=
+#ELOG_PARSER=
+#ELOG_PRODUCER=
 
 function show_help() {
   echo "Usage:"
@@ -51,6 +55,8 @@ function check_config() {
   [ -n "${ELOG_USER+x}"      ] || missing+=(ELOG_USER)
   [ -n "${ELOG_PASSWORD+x}"  ] || missing+=(ELOG_PASSWORD)
   [ -n "${ELOG_LAST_POST+x}" ] || missing+=(ELOG_LAST_POST)
+  [ -n "${ELOG_PARSER+x}"    ] || missing+=(ELOG_PARSER)
+  [ -n "${ELOG_PRODUCER+x}"  ] || missing+=(ELOG_PRODUCER)
 
   if [ ! ${#missing} -eq 0 ]; then
     echo "ERROR: the following environment variables are missing:" >&2

@@ -23,6 +23,8 @@ Here the list of the environment variables is shown:
 * ELOG\_USER:       User name for reading ELOG posts
 * ELOG\_PASSWORD:   Password of the user specified in the variable above
 * ELOG\_LAST\_POST: Path of the file containing the id of the first post to check
+* ELOG\_PARSER:     Path to the elog-parse executable
+* ELOG\_PRODUCER:   Path to the data producer executable
 
 These can be set externally via command line - either manually or in a
 shell file automatically loaded, e.g. `.bashrc` - or written inside the
