@@ -153,6 +153,12 @@ function handler() {
       options+=("${type}" "${parameter}")
     fi
   done
+
+  local -r answer="$("${ELOG_PRODUCER}" "${format}" "${telescope_id}" \
+                     "${start_date}" "${stop_date}" "${cut}" \
+                     "${options[@]}")"
+
+  reply_post "${id}" "" "${answer}"
 }
 
 # Script begins here
