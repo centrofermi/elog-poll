@@ -37,6 +37,9 @@
 #ELOG_PARSER=
 #ELOG_PRODUCER=
 
+readonly REPLY_EC=0
+readonly INVALID_EC=1
+
 function show_help() {
   echo "Usage:"
   echo "  $(basename "$0") [id]"
@@ -117,7 +120,10 @@ function reply_post() {
 }
 
 function handler() {
-  echo "Implement me!"
+  local -r data="$(cat)"
+
+  echo "${data}" | "${ELOG_PARSER}" -c || return ${INVALID_EC}
+  echo "${data}" | "${ELOG_PARSER}" -r && return ${REPLY_EC}
 }
 
 # Script begins here
