@@ -7,37 +7,64 @@
 
 char* NextDay(const char* currentday);
 bool IsInRange(const char* currentday, const char* lastday);
+Bool_t CfrString(const char* str1, const char* str2);
 
-int main()
+int main(int argc, char** argv)
 {
+  gErrorIgnoreLevel = kFatal;
+
+  const char* pathToRecon = "/recon2";
+
+  if (argc < 8)
+    return 10;  // at least 8 arguments needed
+
   bool isRoot = 1;
+  if (CfrString(argv[1], "ROOT"))
+    isRoot = 1;
+  else if (CfrString(argv[1], "CSV"))
+    isRoot = 0;
+  else
+    return 11;  // first argument should be CSV or ROOT
   bool isTXT = !isRoot;
 
-  const Int_t nvar = 3;
-  TString var[nvar] = {"Seconds", "Theta", "Phi"};
-  const char* type[nvar] = {"I", "F", "F"};
+  const char* school = argv[2];
 
-  void* addvar[nvar];
+  const char* dateIn = argv[3];
+  const char* dateOut = argv[4];
 
-  Int_t ivar[nvar];
-  Float_t fvar[nvar];
+  TString cutMy(Form("(%s)", argv[5]));
+  if (CfrString(argv[5], ""))
+    cutMy = "(1)";
 
-  for (Int_t i = 0; i < nvar; i++) {
-    if (type[i] == "I")
-      addvar[i] = &(ivar[i]);
-    else
-      addvar[i] = &(fvar[i]);
+  const Int_t nmaxvar = 20;
+  TString var[nmaxvar];
+  const char* type[nmaxvar];
+  void* addvar[nmaxvar];
+  Int_t ivar[nmaxvar];
+  Float_t fvar[nmaxvar];
+  Bool_t isInteger[nmaxvar];
+
+  Int_t nvar = 0;
+  for (Int_t k = 7; k < argc; k += 2) {
+    type[nvar] = argv[k - 1];
+    var[nvar] = argv[k];
+    nvar++;
+    if (nvar == nmaxvar)
+      k = argc;
+  }
+
+  for (Int_t j = 0; j < nvar; j++) {
+    if (CfrString(type[j], "I")) {
+      addvar[j] = &(ivar[j]);
+      isInteger[j] = 1;
+    } else {
+      addvar[j] = &(fvar[j]);
+      isInteger[j] = 0;
+    }
   }
 
   TString cutBase("(StatusCode==0)&&");
-  TString cutMy("(1)");
   cutBase += cutMy;
-
-  Int_t id = 4;
-  const char* pathToRecon = "/recon2";
-  const char* school = "SAVO-01";
-  const char* dateIn = "2017-05-11";
-  const char* dateOut = "2017-05-12";
 
   const char* currentday = dateIn;
 
@@ -46,12 +73,12 @@ int main()
   while (IsInRange(currentday, dateOut)) {
     if (ndays == 0)
       system(Form(
-          "ls %s/%s/%s/%s*.root >/tmp/%s-%s_%i.lst", pathToRecon, school,
-          currentday, school, school, dateIn, id));
+          "ls %s/%s/%s/%s*.root >/tmp/%s-%s.lst", pathToRecon, school,
+          currentday, school, school, dateIn));
     else
       system(Form(
-          "ls %s/%s/%s/%s*.root >>/tmp/%s-%s_%i.lst", pathToRecon, school,
-          currentday, school, school, dateIn, id));
+          "ls %s/%s/%s/%s*.root >>/tmp/%s-%s.lst", pathToRecon, school,
+          currentday, school, school, dateIn));
 
     ndays++;
 
@@ -63,7 +90,7 @@ int main()
 
   char filerun[200];
 
-  FILE* flist = fopen(Form("/tmp/%s-%s_%i.lst", school, dateIn, id), "r");
+  FILE* flist = fopen(Form("/tmp/%s-%s.lst", school, dateIn), "r");
   if (!flist)
     return 2;
 
@@ -78,7 +105,7 @@ int main()
 
   if (!nfile)
     return 3;
-  if (!chain->GetEntries())
+  if (!chain->GetEntriesFast())
     return 4;
 
   // minimal info
@@ -93,6 +120,31 @@ int main()
       chain->SetBranchStatus(var[j].Data(), 1);
   }
 
+  if (cutMy.Contains("Theta"))
+    return 100;
+  if (cutMy.Contains("Phi"))
+    return 100;
+  if (cutMy.Contains("RunNumber"))
+    chain->SetBranchStatus("RunNumber", 1);
+  if (cutMy.Contains("Seconds"))
+    chain->SetBranchStatus("Seconds", 1);
+  if (cutMy.Contains("Nanoseconds"))
+    chain->SetBranchStatus("Nanoseconds", 1);
+  if (cutMy.Contains("ChiSquare")) {
+    chain->SetBranchStatus("ChiSquare", 1);
+    cutMy.ReplaceAll("ChiSquare", "ChiSquare[0]");
+  }
+  if (cutMy.Contains("TimeOfFlight")) {
+    chain->SetBranchStatus("TimeOfFlight", 1);
+    cutMy.ReplaceAll("TimeOfFlight", "TimeOfFlight[0]");
+  }
+  if (cutMy.Contains("TrackLength")) {
+    chain->SetBranchStatus("TrackLength", 1);
+    cutMy.ReplaceAll("TrackLength", "TrackLength[0]");
+  }
+  if (cutMy.Contains("DeltaTime"))
+    chain->SetBranchStatus("DeltaTime", 1);
+
   TTree* workingtree = chain->CopyTree(cutBase.Data());
 
   TTree* outputTree = new TTree("eee", "eee");
@@ -102,8 +154,7 @@ int main()
 
   Float_t xd, yd, zd;
 
-  char* outname
-      = Form("/tmp/%sfrom%sto%s_%i.csv", school, dateIn, dateOut, id);
+  char* outname = Form("/tmp/%sfrom%sto%s.csv", school, dateIn, dateOut);
 
   FILE* foutCSV = fopen(outname, "w");
   for (Int_t j = 0; j < nvar; j++) {
@@ -113,7 +164,7 @@ int main()
   }
   fprintf(foutCSV, "\n");
 
-  for (Int_t i = 0; i < workingtree->GetEntries(); i++) {
+  for (Int_t i = 0; i < workingtree->GetEntriesFast(); i++) {
     workingtree->GetEvent(i);
 
     xd = workingtree->GetLeaf("XDir")->GetValue();
@@ -125,7 +176,7 @@ int main()
         fprintf(foutCSV, ",");
 
       if (!(var[j].Contains("Theta") || var[j].Contains("Phi"))) {
-        if (type[j] == "I")
+        if (isInteger[j])
           ivar[j] = workingtree->GetLeaf(var[j].Data())->GetValue();
         else
           fvar[j] = workingtree->GetLeaf(var[j].Data())->GetValue();
@@ -157,8 +208,7 @@ int main()
   }
 
   if (isRoot) {
-    outname
-        = Form("/tmp/%sfrom%sto%s_%i.root", school, dateIn, dateOut, id);
+    outname = Form("/tmp/%sfrom%sto%s.root", school, dateIn, dateOut);
     TFile* foutRoot = new TFile(outname, "RECREATE");
     outputTree->Write();
     foutRoot->Close();
@@ -174,7 +224,16 @@ char* NextDay(const char* currentday)
       = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
   Int_t y, m, d;
-  sscanf(currentday, "%4i-%2i-%2i", &y, &m, &d);
+  sscanf(currentday, "%4i", &y);
+  if (currentday[5] != '0')
+    sscanf(&(currentday[5]), "%i", &m);
+  else
+    sscanf(&(currentday[6]), "%i", &m);
+  if (currentday[8] != '0')
+    sscanf(&(currentday[8]), "%2i", &d);
+  else
+    sscanf(&(currentday[9]), "%2i", &d);
+
   if (!(y % 4))
     dayPerMonth[1] = 29;
 
@@ -213,4 +272,14 @@ bool IsInRange(const char* currentday, const char* lastday)
     return 1;
 
   return 0;
+}
+
+Bool_t CfrString(const char* str1, const char* str2)
+{
+  int n = 0;
+  while (str1[n] == str2[n] && str1[n] != '\0' && str2[n] != '\0'
+         && n < 100) {
+    n++;
+  }
+  return (str1[n] == str2[n]);
 }
