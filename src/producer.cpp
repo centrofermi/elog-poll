@@ -144,9 +144,9 @@ int main(int argc, char** argv)
 
   TTree* workingtree = chain.CopyTree(cutBase.Data());
 
-  TTree* outputTree = new TTree("eee", "eee");
+  TTree outputTree("eee", "eee");
   for (Int_t j = 0; j < nvar; j++)
-    outputTree->Branch(
+    outputTree.Branch(
         var[j].Data(), addvar[j], Form("%s/%s", var[j].Data(), type[j]));
 
   Float_t xd, yd, zd;
@@ -193,7 +193,7 @@ int main(int argc, char** argv)
       }
     }
     if (isRoot)
-      outputTree->Fill();
+      outputTree.Fill();
     if (isTXT)
       fprintf(foutCSV, "\n");
   }
@@ -206,9 +206,9 @@ int main(int argc, char** argv)
 
   if (isRoot) {
     outname = Form("/tmp/%sfrom%sto%s.root", school, dateIn, dateOut);
-    TFile* foutRoot = new TFile(outname, "RECREATE");
-    outputTree->Write();
-    foutRoot->Close();
+    TFile foutRoot(outname, "RECREATE");
+    outputTree.Write();
+    foutRoot.Close();
     printf("%s\n", outname);
   }
 
