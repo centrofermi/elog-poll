@@ -26,7 +26,7 @@ find_package(ROOT 5.32.00 REQUIRED)
 # ROOT include dirs
 include_directories(${ROOT_INCLUDE_DIR})
 message(${ROOT_INCLUDE_DIR})
-
+execute_process(COMMAND "ls" "/usr/include/root")
 add_library(elog src/libelog.cpp)
 
 # Parser
