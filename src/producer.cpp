@@ -1,3 +1,4 @@
+#include <string>
 #include <stdlib.h>
 #include <TFile.h>
 #include <TChain.h>
@@ -8,6 +9,11 @@
 char* NextDay(const char* currentday);
 bool IsInRange(const char* currentday, const char* lastday);
 Bool_t CfrString(const char* str1, const char* str2);
+
+bool matches(std::string const& head, std::string const& tail, std::string const& s)
+{
+  return s.find(head) == 0 && s.find(tail) == s.size() - tail.size();
+}
 
 int main(int argc, char** argv)
 {
