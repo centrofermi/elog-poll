@@ -1,7 +1,6 @@
 #include <string>
-#include <vector>
+#include <sstream>
 #include <stdlib.h>
-#include <dirent.h>
 #include <TFile.h>
 #include <TChain.h>
 #include <TString.h>
@@ -77,27 +76,22 @@ int main(int argc, char** argv)
   const char* currentday = dateIn;
 
   Int_t ndays = 0;
+  int nfile = 0;
 
-  std::vector<std::string> files;
+  TChain chain("Events");
+
   while (IsInRange(currentday, dateOut)) {
-    std::string const folder_name
-      = std::string(pathToRecon) + "/"
-      + school + "/"
-      + currentday;
+    std::ostringstream oss;
 
-    DIR* const dir = opendir(folder_name.c_str());
-    if (dir) {
-      dirent* d = 0;
-      while (d = readdir(dir)) {
-        if (matches(school, ".root", d->d_name)) {
-          files.push_back(folder_name + d->d_name);
-        }
-      }
+    oss
+      << pathToRecon << '/'
+      << school << '/'
+      << currentday << '/'
+      << school << "*.root";
 
-      closedir(dir);
-    }
+    nfile += chain.Add(oss.str().c_str());
 
-    ndays++;
+    ++ndays;
 
     currentday = NextDay(currentday);
   }
@@ -105,30 +99,22 @@ int main(int argc, char** argv)
   if (ndays == 0)
     return 1;
 
-  Int_t const nfile = files.size();
-
   if (!nfile)
     return 3;
 
-  TChain* chain = new TChain("Events");
-
-  for (int i = 0; i < nfile; ++i) {
-    chain->AddFile(files[i].c_str());
-  }
-
-  if (!chain->GetEntriesFast())
+  if (!chain.GetEntriesFast())
     return 4;
 
   // minimal info
-  chain->SetBranchStatus("*", 0);
-  chain->SetBranchStatus("StatusCode", 1);
-  chain->SetBranchStatus("XDir", 1);
-  chain->SetBranchStatus("YDir", 1);
-  chain->SetBranchStatus("ZDir", 1);
+  chain.SetBranchStatus("*", 0);
+  chain.SetBranchStatus("StatusCode", 1);
+  chain.SetBranchStatus("XDir", 1);
+  chain.SetBranchStatus("YDir", 1);
+  chain.SetBranchStatus("ZDir", 1);
 
   for (Int_t j = 0; j < nvar; j++) {
     if (!(var[j].Contains("Theta") || var[j].Contains("Phi")))
-      chain->SetBranchStatus(var[j].Data(), 1);
+      chain.SetBranchStatus(var[j].Data(), 1);
   }
 
   if (cutMy.Contains("Theta"))
@@ -136,27 +122,27 @@ int main(int argc, char** argv)
   if (cutMy.Contains("Phi"))
     return 100;
   if (cutMy.Contains("RunNumber"))
-    chain->SetBranchStatus("RunNumber", 1);
+    chain.SetBranchStatus("RunNumber", 1);
   if (cutMy.Contains("Seconds"))
-    chain->SetBranchStatus("Seconds", 1);
+    chain.SetBranchStatus("Seconds", 1);
   if (cutMy.Contains("Nanoseconds"))
-    chain->SetBranchStatus("Nanoseconds", 1);
+    chain.SetBranchStatus("Nanoseconds", 1);
   if (cutMy.Contains("ChiSquare")) {
-    chain->SetBranchStatus("ChiSquare", 1);
+    chain.SetBranchStatus("ChiSquare", 1);
     cutMy.ReplaceAll("ChiSquare", "ChiSquare[0]");
   }
   if (cutMy.Contains("TimeOfFlight")) {
-    chain->SetBranchStatus("TimeOfFlight", 1);
+    chain.SetBranchStatus("TimeOfFlight", 1);
     cutMy.ReplaceAll("TimeOfFlight", "TimeOfFlight[0]");
   }
   if (cutMy.Contains("TrackLength")) {
-    chain->SetBranchStatus("TrackLength", 1);
+    chain.SetBranchStatus("TrackLength", 1);
     cutMy.ReplaceAll("TrackLength", "TrackLength[0]");
   }
   if (cutMy.Contains("DeltaTime"))
-    chain->SetBranchStatus("DeltaTime", 1);
+    chain.SetBranchStatus("DeltaTime", 1);
 
-  TTree* workingtree = chain->CopyTree(cutBase.Data());
+  TTree* workingtree = chain.CopyTree(cutBase.Data());
 
   TTree* outputTree = new TTree("eee", "eee");
   for (Int_t j = 0; j < nvar; j++)
