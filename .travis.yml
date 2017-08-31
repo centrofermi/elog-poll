@@ -32,6 +32,7 @@ jobs:
         - mkdir build
         - cd build
         - export CXX=g++-4.9
+        - export ROOTSYS=/usr
         - cmake ../
         - make
         - cd ..
