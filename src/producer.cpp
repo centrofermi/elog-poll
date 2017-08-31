@@ -105,8 +105,6 @@ int main(int argc, char** argv)
   if (ndays == 0)
     return 1;
 
-  char filerun[200];
-
   Int_t const nfile = files.size();
 
   if (!nfile)
