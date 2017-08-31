@@ -9,7 +9,7 @@
 
 char* NextDay(const char* currentday);
 bool IsInRange(const char* currentday, const char* lastday);
-Bool_t CfrString(const char* str1, const char* str2);
+bool CfrString(const char* str1, const char* str2);
 
 bool matches(std::string const& head, std::string const& tail, std::string const& s)
 {
@@ -271,12 +271,7 @@ bool IsInRange(const char* currentday, const char* lastday)
   return 0;
 }
 
-Bool_t CfrString(const char* str1, const char* str2)
+bool CfrString(const char* str1, const char* str2)
 {
-  int n = 0;
-  while (str1[n] == str2[n] && str1[n] != '\0' && str2[n] != '\0'
-         && n < 100) {
-    n++;
-  }
-  return (str1[n] == str2[n]);
+  return strncmp(str1, str2, 100) == 0;
 }
