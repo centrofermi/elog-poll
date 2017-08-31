@@ -1,5 +1,7 @@
 #include <string>
+#include <vector>
 #include <stdlib.h>
+#include <dirent.h>
 #include <TFile.h>
 #include <TChain.h>
 #include <TString.h>
@@ -76,15 +78,24 @@ int main(int argc, char** argv)
 
   Int_t ndays = 0;
 
+  std::vector<std::string> files;
   while (IsInRange(currentday, dateOut)) {
-    if (ndays == 0)
-      system(Form(
-          "ls %s/%s/%s/%s*.root >/tmp/%s-%s.lst", pathToRecon, school,
-          currentday, school, school, dateIn));
-    else
-      system(Form(
-          "ls %s/%s/%s/%s*.root >>/tmp/%s-%s.lst", pathToRecon, school,
-          currentday, school, school, dateIn));
+    std::string const folder_name
+      = std::string(pathToRecon) + "/"
+      + school + "/"
+      + currentday;
+
+    DIR* const dir = opendir(folder_name.c_str());
+    if (dir) {
+      dirent* d = 0;
+      while (d = readdir(dir)) {
+        if (matches(school, ".root", d->d_name)) {
+          files.push_back(folder_name + d->d_name);
+        }
+      }
+
+      closedir(dir);
+    }
 
     ndays++;
 
@@ -96,21 +107,17 @@ int main(int argc, char** argv)
 
   char filerun[200];
 
-  FILE* flist = fopen(Form("/tmp/%s-%s.lst", school, dateIn), "r");
-  if (!flist)
-    return 2;
-
-  Int_t nfile = 0;
-  TChain* chain = new TChain("Events");
-
-  while (fscanf(flist, "%s", filerun) == 1) {
-    chain->AddFile(filerun);
-    nfile++;
-  }
-  fclose(flist);
+  Int_t const nfile = files.size();
 
   if (!nfile)
     return 3;
+
+  TChain* chain = new TChain("Events");
+
+  for (int i = 0; i < nfile; ++i) {
+    chain->AddFile(files[i].c_str());
+  }
+
   if (!chain->GetEntriesFast())
     return 4;
 
