@@ -19,7 +19,19 @@ else ()
   )
 endif()
 
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/")
+
+find_package(ROOT 5.32.00 REQUIRED)
+
+# ROOT include dirs
+include_directories(${ROOT_INCLUDE_DIR})
+
 add_library(elog src/libelog.cpp)
 
+# Parser
 add_executable(elog-parse src/elog-parse.cpp)
 target_link_libraries(elog-parse elog)
+
+# Producer
+add_executable(producer src/producer.cpp)
+target_link_libraries(producer ${ROOT_LIBRARIES})
