@@ -184,8 +184,6 @@ int main(int argc, char** argv)
         fvar[j] = TMath::ACos(zd) * TMath::RadToDeg();
       } else if (var[j].Contains("Phi")) {
         fvar[j] = TMath::ATan2(yd, xd) * TMath::RadToDeg();
-        if (fvar[j] < 0)
-          fvar[j] += 360;
       }
 
       if (isTXT) {
