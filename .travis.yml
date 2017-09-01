@@ -20,6 +20,16 @@ addons:
       - libroot-tree-dev
       - libroot-core-dev
       - libroot-math-mathcore-dev
+      - libroot-graf2d-gpad-dev
+      - libroot-graf2d-graf-dev
+      - libroot-graf2d-postscript-dev
+      - libroot-graf3d-g3d-dev
+      - libroot-gui-dev
+      - libroot-gui-dev 
+      - libroot-hist-dev
+      - libroot-math-matrix-dev
+      - libroot-math-physics-dev
+      - libroot-net-dev
 
 before_install:
   - docker pull peterdavehello/debian-8-shellcheck
