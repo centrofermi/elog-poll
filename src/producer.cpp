@@ -117,10 +117,13 @@ int main(int argc, char** argv)
       chain.SetBranchStatus(var[j].Data(), 1);
   }
 
-  if (cutMy.Contains("Theta"))
-    return 100;
-  if (cutMy.Contains("Phi"))
-    return 100;
+  if(cutMy.Contains("Theta")) {
+    cutMy.ReplaceAll("Theta", "TMath::ACos(ZDir[0])*TMath::RadToDeg()");
+  }
+  if(cutMy.Contains("Phi")) {
+    cutMy.ReplaceAll("Phi", "TMath::ATan2(YDir[0],XDir[0])*TMath::RadToDeg()");
+  }
+
   if (cutMy.Contains("RunNumber"))
     chain.SetBranchStatus("RunNumber", 1);
   if (cutMy.Contains("Seconds"))
