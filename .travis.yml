@@ -16,6 +16,10 @@ addons:
     packages:
       - g++-4.9
       - root-system
+      - libroot-io-dev
+      - libroot-tree-dev
+      - libroot-core-dev
+      - libroot-math-mathcore-dev
 
 before_install:
   - docker pull peterdavehello/debian-8-shellcheck
