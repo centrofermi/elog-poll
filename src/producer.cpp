@@ -189,7 +189,7 @@ int main(int argc, char** argv)
       }
 
       if (isTXT) {
-        if (type[j] == "I")
+        if (isInteger[j])
           fprintf(foutCSV, "%i", ivar[j]);
         else
           fprintf(foutCSV, "%f", fvar[j]);
