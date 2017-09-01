@@ -9,6 +9,28 @@ It might work also on macOS and Windows Subsystem for Linux.
 In particular, it wraps around the `elog` command line program which is
 shipped together with the ELOG source code.
 
+Together with the script, two C++ programs are also provided, serving as
+parser and producer, that perform parsing of ELOG posts and preparation of
+data to be attached in the reply.
+
+## Building C++ code
+First make sure that the following dependencies are installed in your
+system:
+* gcc >= 4.9
+* cmake >= 2.6
+* ROOT >= 5.34
+
+The building process in handled via CMake. Type the following commands
+from a shell in the repository folder:
+```shell
+mkdir build
+cd build
+cmake ../ -DCMAKE_BUILD_TYPE=Release
+make
+```
+This will build the executables in the `build` directory. Feel free to
+change the name of this folder to any of your choice.
+
 ## Configuration
 The program is configured via a set of environment variables and it checks
 whether they are set during start-up and will notify the user about
