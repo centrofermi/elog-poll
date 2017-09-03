@@ -235,16 +235,10 @@ char* NextDay(const char* currentday)
   Int_t dayPerMonth[12]
       = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
-  Int_t y, m, d;
-  sscanf(currentday, "%4i", &y);
-  if (currentday[5] != '0')
-    sscanf(&(currentday[5]), "%i", &m);
-  else
-    sscanf(&(currentday[6]), "%i", &m);
-  if (currentday[8] != '0')
-    sscanf(&(currentday[8]), "%2i", &d);
-  else
-    sscanf(&(currentday[9]), "%2i", &d);
+  date const day = parse_date(currentday);
+  int y = std::get<0>(day);
+  int m = std::get<1>(day);
+  int d = std::get<2>(day);
 
   if (!(y % 4))
     dayPerMonth[1] = 29;
@@ -265,25 +259,31 @@ char* NextDay(const char* currentday)
 
 bool IsInRange(const char* currentday, const char* lastday)
 {
-  Int_t y, m, d;
-  sscanf(currentday, "%4i-%2i-%2i", &y, &m, &d);
-  Int_t y2, m2, d2;
-  sscanf(lastday, "%4i-%2i-%2i", &y2, &m2, &d2);
+  date const current = parse_date(currentday);
+  date const last = parse_date(lastday);
 
-  if (y2 > y)
-    return 1;
-  else if (y2 < y)
-    return 0;
+  int const y1 = std::get<0>(current);
+  int const m1 = std::get<1>(current);
+  int const d1 = std::get<2>(current);
 
-  if (m2 > m)
-    return 1;
-  else if (m2 < m)
-    return 0;
+  int const y2 = std::get<0>(last);
+  int const m2 = std::get<1>(last);
+  int const d2 = std::get<2>(last);
 
-  if (d2 >= d)
-    return 1;
+  if (y2 > y1)
+    return true;
+  else if (y2 < y1)
+    return false;
 
-  return 0;
+  if (m2 > m1)
+    return true;
+  else if (m2 < m1)
+    return false;
+
+  if (d2 >= d1)
+    return true;
+
+  return false;
 }
 
 bool CfrString(const char* str1, const char* str2)
