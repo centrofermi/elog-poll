@@ -1,11 +1,14 @@
 #include <string>
 #include <sstream>
+#include <tuple>
 #include <stdlib.h>
 #include <TFile.h>
 #include <TChain.h>
 #include <TString.h>
 #include <TLeaf.h>
 #include <TMath.h>
+
+using date = std::tuple<int, int, int>;
 
 char* NextDay(const char* currentday);
 bool IsInRange(const char* currentday, const char* lastday);
@@ -209,6 +212,22 @@ int main(int argc, char** argv)
   }
 
   return 0;
+}
+
+date parse_date(char const* str)
+{
+  int y = 0, m = 0, d = 0;
+  sscanf(str, "%4i", &y);
+  if (str[5] != '0')
+    sscanf(&(str[5]), "%i", &m);
+  else
+    sscanf(&(str[6]), "%i", &m);
+  if (str[8] != '0')
+    sscanf(&(str[8]), "%2i", &d);
+  else
+    sscanf(&(str[9]), "%2i", &d);
+
+  return std::make_tuple(y, m, d);
 }
 
 char* NextDay(const char* currentday)
