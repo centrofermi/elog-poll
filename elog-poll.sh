@@ -158,7 +158,7 @@ function handler() {
                      "${start_date}" "${stop_date}" "${cut}" \
                      "${options[@]}")"
 
-  reply_post "${id}" "" "${answer}"
+  reply_post "${id}" "Data extraction succeeded" "${answer}"
 }
 
 # Script begins here
