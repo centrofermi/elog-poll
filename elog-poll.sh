@@ -157,8 +157,9 @@ function handler() {
   local -r answer="$("${ELOG_PRODUCER}" "${format}" "${telescope_id}" \
                      "${start_date}" "${stop_date}" "${cut}" \
                      "${options[@]}")"
+  zip "${answer}.zip" "${answer}"
 
-  reply_post "${id}" "Data extraction succeeded" "${answer}"
+  reply_post "${id}" "Data extraction succeeded" "${answer}.zip"
 }
 
 # Script begins here
