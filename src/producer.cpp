@@ -20,16 +20,20 @@ int main(int argc, char** argv)
 
   const char* pathToRecon = "/recon2";
 
-  if (argc < 8)
+  if (argc < 8){
+    printf("Error: Something is missing (please check your submission)!\n");
     return 10;  // at least 8 arguments needed
+  }
 
   bool isRoot = 1;
   if (CfrString(argv[1], "ROOT"))
     isRoot = 1;
   else if (CfrString(argv[1], "CSV"))
     isRoot = 0;
-  else
+  else{
+    printf("Error: CSV or ROOT should be set!\n");
     return 11;  // first argument should be CSV or ROOT
+  }
   bool isTXT = !isRoot;
 
   const char* school = argv[2];
@@ -58,7 +62,10 @@ int main(int argc, char** argv)
       k = argc;
   }
 
-  if(nvar==0) return 12;
+  if(nvar==0){
+    printf("Error: At least one variable is needed!\n");
+    return 12;
+  }
 
   for (Int_t j = 0; j < nvar; j++) {
     if (CfrString(type[j], "I")) {
@@ -80,7 +87,7 @@ int main(int argc, char** argv)
 
   TChain chain("Events");
 
-  while (IsInRange(currentday, dateOut)) {
+  while (IsInRange(currentday, dateOut) && ndays < 30) {
     std::ostringstream oss;
 
     oss
@@ -96,14 +103,20 @@ int main(int argc, char** argv)
     currentday = NextDay(currentday);
   }
 
-  if (ndays == 0)
+  if (ndays == 0){
+    printf("Error: No data available in the requested period!\n");
     return 1;
+  }
 
-  if (!nfile)
+  if (!nfile){
+    printf("Error: No data available in the requested period!\n");
     return 3;
+  }
 
-  if (!chain.GetEntriesFast())
+  if (!chain.GetEntriesFast()){
+    printf("Error: No data available in the requested period!\n");
     return 4;
+  }
 
   // minimal info
   chain.SetBranchStatus("*", 0);
