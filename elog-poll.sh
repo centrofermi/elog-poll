@@ -154,12 +154,19 @@ function handler() {
     fi
   done
 
-  local -r answer="$("${ELOG_PRODUCER}" "${format}" "${telescope_id}" \
+  local answer
+  answer="$("${ELOG_PRODUCER}" "${format}" "${telescope_id}" \
                      "${start_date}" "${stop_date}" "${cut}" \
                      "${options[@]}")"
-  zip "${answer}.zip" "${answer}"
+  local -r return_status=$?
 
-  reply_post "${id}" "Data extraction succeeded" "${answer}.zip"
+  if [ "${return_status}" -eq 0 ]; then
+    zip "${answer}.zip" "${answer}"
+
+    reply_post "${id}" "Data extraction succeeded" "${answer}.zip"
+  else
+    reply_post "${id}" "Data extraction failed: ${answer}"
+  fi
 }
 
 # Script begins here
