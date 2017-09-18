@@ -162,7 +162,12 @@ int main(int argc, char** argv)
   }
   fprintf(foutCSV, "\n");
 
-  for (Int_t i = 0; i < workingtree->GetEntriesFast(); i++) {
+  if(nvar==0) nvar++;
+  Long64_t nmaxentr = 12500000;
+  if(nvar > 0) nmaxentr = 12500000/nvar;
+  int nentries=TMath::Min(workingtree->GetEntriesFast(),nmaxentr);
+
+  for (Int_t i = 0; i < nentries; i++) {
     workingtree->GetEvent(i);
 
     xd = workingtree->GetLeaf("XDir")->GetValue();
