@@ -78,7 +78,6 @@ int main(int argc, char** argv)
   }
 
   TString cutBase("(StatusCode==0)&&");
-  cutBase += cutMy;
 
   const char* currentday = dateIn;
 
@@ -157,6 +156,8 @@ int main(int argc, char** argv)
   }
   if (cutMy.Contains("DeltaTime"))
     chain.SetBranchStatus("DeltaTime", 1);
+
+  cutBase += cutMy;
 
   TTree* workingtree = chain.CopyTree(cutBase.Data());
 
