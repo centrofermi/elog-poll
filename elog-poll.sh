@@ -139,6 +139,7 @@ function handler() {
   local -r cut="$(echo "${data}" | "${ELOG_PARSER}" '%[Cut]')"
   local -r format="$(echo "${data}" | "${ELOG_PARSER}" '%[Output format]')"
   local -r telescope_id="$(echo "${data}" | "${ELOG_PARSER}" '%[Telescope ID]')"
+  local -r is_mc="$(echo "${data}" | "${ELOG_PARSER}" '%[MC]')"
 
   local -r param_types=(I I I F F F F F F)
   local -r parameters=(RunNumber Seconds Nanoseconds Theta Phi ChiSquare \
@@ -157,7 +158,7 @@ function handler() {
   local answer
   answer="$("${ELOG_PRODUCER}" "${format}" "${telescope_id}" \
                      "${start_date}" "${stop_date}" "${cut}" \
-                     "${options[@]}")"
+                     "${is_mc}" "${options[@]}")"
   local -r return_status=$?
 
   if [ "${return_status}" -eq 0 ]; then
