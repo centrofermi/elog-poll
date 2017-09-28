@@ -37,6 +37,7 @@ int main(int argc, char** argv)
   bool isTXT = !isRoot;
 
   const char* school = argv[2];
+  const char* schoolInFile = argv[2];
 
   const char* dateIn = argv[3];
   const char* dateOut = argv[4];
@@ -55,6 +56,15 @@ int main(int argc, char** argv)
 
 
   bool const is_mc = CfrString(argv[6], "1");
+
+  if(is_mc){
+     pathToRecon = "/MC";
+
+     // temporary: data set to 1st October 2017
+     dateIn="2017-10-01";
+     dateOut="2017-10-01";
+     schoolInFile="MONT-01";
+  }
 
   Int_t nvar = 0;
   for (Int_t k = 8; k < argc; k += 2) {
@@ -96,7 +106,7 @@ int main(int argc, char** argv)
       << pathToRecon << '/'
       << school << '/'
       << currentday << '/'
-      << school << "*.root";
+      << schoolInFile << "*.root";
 
     nfile += chain.Add(oss.str().c_str());
 
