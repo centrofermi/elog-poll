@@ -20,7 +20,7 @@ int main(int argc, char** argv)
 
   const char* pathToRecon = "/recon2";
 
-  if (argc < 8){
+  if (argc < 9){
     printf("Error: Something is missing (please check your submission)!\n");
     return 10;  // at least 8 arguments needed
   }
@@ -53,8 +53,11 @@ int main(int argc, char** argv)
   Float_t fvar[nmaxvar];
   Bool_t isInteger[nmaxvar];
 
+
+  bool const is_mc = CfrString(argv[6], "1");
+
   Int_t nvar = 0;
-  for (Int_t k = 7; k < argc; k += 2) {
+  for (Int_t k = 8; k < argc; k += 2) {
     type[nvar] = argv[k - 1];
     var[nvar] = argv[k];
     nvar++;
