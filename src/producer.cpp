@@ -106,7 +106,7 @@ int main(int argc, char** argv)
       << pathToRecon << '/'
       << school << '/'
       << currentday << '/'
-      << schoolInFile << "*.root";
+      << schoolInFile << "*dst.root";
 
     nfile += chain.Add(oss.str().c_str());
 
