@@ -26,12 +26,12 @@ int main(int argc, char** argv)
     return 10;  // at least 8 arguments needed
   }
 
-  bool isRoot = 1;
-  if (CfrString(argv[1], "ROOT"))
-    isRoot = 1;
-  else if (CfrString(argv[1], "CSV"))
-    isRoot = 0;
-  else {
+  bool isRoot = true;
+  if (CfrString(argv[1], "ROOT")) {
+    isRoot = true;
+  } else if (CfrString(argv[1], "CSV")) {
+    isRoot = false;
+  } else {
     printf("Error: CSV or ROOT should be set!\n");
     return 11;  // first argument should be CSV or ROOT
   }
@@ -44,8 +44,9 @@ int main(int argc, char** argv)
   const char* dateOut = argv[4];
 
   TString cutMy(Form("(%s)", argv[5]));
-  if (CfrString(argv[5], ""))
+  if (CfrString(argv[5], "")) {
     cutMy = "(1)";
+  }
 
   const Int_t nmaxvar = 20;
   TString var[nmaxvar];
