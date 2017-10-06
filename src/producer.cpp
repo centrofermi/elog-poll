@@ -20,8 +20,9 @@ int main(int argc, char** argv)
 
   const char* pathToRecon = "/recon2";
 
-  if (argc < 9){
-    printf("Error: Something is missing (please check your submission)!\n");
+  if (argc < 9) {
+    printf(
+        "Error: Something is missing (please check your submission)!\n");
     return 10;  // at least 8 arguments needed
   }
 
@@ -30,7 +31,7 @@ int main(int argc, char** argv)
     isRoot = 1;
   else if (CfrString(argv[1], "CSV"))
     isRoot = 0;
-  else{
+  else {
     printf("Error: CSV or ROOT should be set!\n");
     return 11;  // first argument should be CSV or ROOT
   }
@@ -54,16 +55,15 @@ int main(int argc, char** argv)
   Float_t fvar[nmaxvar];
   Bool_t isInteger[nmaxvar];
 
-
   bool const is_mc = CfrString(argv[6], "1");
 
-  if(is_mc){
-     pathToRecon = "/MC";
+  if (is_mc) {
+    pathToRecon = "/MC";
 
-     // temporary: data set to 1st October 2017
-     dateIn="2017-10-01";
-     dateOut="2017-10-01";
-     schoolInFile="MONT-01";
+    // temporary: data set to 1st October 2017
+    dateIn = "2017-10-01";
+    dateOut = "2017-10-01";
+    schoolInFile = "MONT-01";
   }
 
   Int_t nvar = 0;
@@ -75,7 +75,7 @@ int main(int argc, char** argv)
       k = argc;
   }
 
-  if(nvar==0){
+  if (nvar == 0) {
     printf("Error: At least one variable is needed!\n");
     return 12;
   }
@@ -115,17 +115,17 @@ int main(int argc, char** argv)
     currentday = NextDay(currentday);
   }
 
-  if (ndays == 0){
+  if (ndays == 0) {
     printf("Error: No data available in the requested period!\n");
     return 1;
   }
 
-  if (!nfile){
+  if (!nfile) {
     printf("Error: No data available in the requested period!\n");
     return 3;
   }
 
-  if (!chain.GetEntriesFast()){
+  if (!chain.GetEntriesFast()) {
     printf("Error: No data available in the requested period!\n");
     return 4;
   }
@@ -142,11 +142,12 @@ int main(int argc, char** argv)
       chain.SetBranchStatus(var[j].Data(), 1);
   }
 
-  if(cutMy.Contains("Theta")) {
+  if (cutMy.Contains("Theta")) {
     cutMy.ReplaceAll("Theta", "TMath::ACos(ZDir[0])*TMath::RadToDeg()");
   }
-  if(cutMy.Contains("Phi")) {
-    cutMy.ReplaceAll("Phi", "TMath::ATan2(YDir[0],XDir[0])*TMath::RadToDeg()");
+  if (cutMy.Contains("Phi")) {
+    cutMy.ReplaceAll(
+        "Phi", "TMath::ATan2(YDir[0],XDir[0])*TMath::RadToDeg()");
   }
 
   if (cutMy.Contains("RunNumber"))
@@ -191,8 +192,8 @@ int main(int argc, char** argv)
   }
   fprintf(foutCSV, "\n");
 
-  Long64_t nmaxentr = 12500000/nvar;
-  int nentries=TMath::Min(workingtree->GetEntriesFast(),nmaxentr);
+  Long64_t nmaxentr = 12500000 / nvar;
+  int nentries = TMath::Min(workingtree->GetEntriesFast(), nmaxentr);
 
   for (Int_t i = 0; i < nentries; i++) {
     workingtree->GetEvent(i);
