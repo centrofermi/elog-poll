@@ -2,5 +2,5 @@ a.out
 *.so
 *.a
 *.o
-build
+build*
 playground
