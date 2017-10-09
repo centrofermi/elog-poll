@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string>
 #include <sstream>
 #include <tuple>
@@ -21,8 +22,8 @@ int main(int argc, char** argv)
   const char* pathToRecon = "/recon2";
 
   if (argc < 9) {
-    printf(
-        "Error: Something is missing (please check your submission)!\n");
+    std::cout <<
+        "Error: Something is missing (please check your submission)!\n";
     return 10;  // at least 8 arguments needed
   }
 
@@ -32,7 +33,7 @@ int main(int argc, char** argv)
   } else if (CfrString(argv[1], "CSV")) {
     isRoot = false;
   } else {
-    printf("Error: CSV or ROOT should be set!\n");
+    std::cout << "Error: CSV or ROOT should be set!\n";
     return 11;  // first argument should be CSV or ROOT
   }
   bool isTXT = !isRoot;
@@ -77,7 +78,7 @@ int main(int argc, char** argv)
   }
 
   if (nvar == 0) {
-    printf("Error: At least one variable is needed!\n");
+    std::cout << "Error: At least one variable is needed!\n";
     return 12;
   }
 
@@ -117,17 +118,17 @@ int main(int argc, char** argv)
   }
 
   if (ndays == 0) {
-    printf("Error: No data available in the requested period!\n");
+    std::cout << "Error: No data available in the requested period!\n";
     return 1;
   }
 
   if (!nfile) {
-    printf("Error: No data available in the requested period!\n");
+    std::cout << "Error: No data available in the requested period!\n";
     return 3;
   }
 
   if (!chain.GetEntriesFast()) {
-    printf("Error: No data available in the requested period!\n");
+    std::cout << "Error: No data available in the requested period!\n";
     return 4;
   }
 
@@ -242,10 +243,10 @@ int main(int argc, char** argv)
     TFile foutRoot(outname, "RECREATE");
     outputTree.Write();
     foutRoot.Close();
-    printf("%s\n", outname);
   }
 
   return 0;
+  std::cout << outname << '\n';
 }
 
 date parse_date(char const* str)
