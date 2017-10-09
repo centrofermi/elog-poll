@@ -245,7 +245,6 @@ int main(int argc, char** argv)
     foutRoot.Close();
   }
 
-  return 0;
   std::cout << outname << '\n';
 }
 
