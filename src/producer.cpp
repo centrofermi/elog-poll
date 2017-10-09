@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <sstream>
 #include <tuple>
@@ -175,74 +176,85 @@ int main(int argc, char** argv)
 
   cutBase += cutMy;
 
-  TTree* workingtree = chain.CopyTree(cutBase.Data());
+  std::ostringstream oss;
+  oss << "/tmp/" << school << "from" << dateIn << "to" << dateOut << (isRoot ? ".root" : ".csv");
 
-  TTree outputTree("eee", "eee");
-  for (Int_t j = 0; j < nvar; j++)
-    outputTree.Branch(
-        var[j].Data(), addvar[j], Form("%s/%s", var[j].Data(), type[j]));
+  std::string const outname = oss.str();
 
-  Float_t xd, yd, zd;
+  TTree* const workingtree = chain.CopyTree(cutBase.Data());
 
-  char* outname = Form("/tmp/%sfrom%sto%s.csv", school, dateIn, dateOut);
-
-  FILE* foutCSV = fopen(outname, "w");
-  for (Int_t j = 0; j < nvar; j++) {
-    if (j > 0)
-      fprintf(foutCSV, ",");
-    fprintf(foutCSV, "%s", var[j].Data());
-  }
-  fprintf(foutCSV, "\n");
-
-  Long64_t nmaxentr = 12500000 / nvar;
-  int nentries = TMath::Min(workingtree->GetEntriesFast(), nmaxentr);
-
-  for (Int_t i = 0; i < nentries; i++) {
-    workingtree->GetEvent(i);
-
-    xd = workingtree->GetLeaf("XDir")->GetValue();
-    yd = workingtree->GetLeaf("YDir")->GetValue();
-    zd = workingtree->GetLeaf("ZDir")->GetValue();
-
-    for (Int_t j = 0; j < nvar; j++) {
-      if (j > 0)
-        fprintf(foutCSV, ",");
-
-      if (!(var[j].Contains("Theta") || var[j].Contains("Phi"))) {
-        if (isInteger[j])
-          ivar[j] = workingtree->GetLeaf(var[j].Data())->GetValue();
-        else
-          fvar[j] = workingtree->GetLeaf(var[j].Data())->GetValue();
-      } else if (var[j].Contains("Theta")) {
-        fvar[j] = TMath::ACos(zd) * TMath::RadToDeg();
-      } else if (var[j].Contains("Phi")) {
-        fvar[j] = TMath::ATan2(yd, xd) * TMath::RadToDeg();
-      }
-
-      if (isTXT) {
-        if (isInteger[j])
-          fprintf(foutCSV, "%i", ivar[j]);
-        else
-          fprintf(foutCSV, "%f", fvar[j]);
-      }
-    }
-    if (isRoot)
-      outputTree.Fill();
-    if (isTXT)
-      fprintf(foutCSV, "\n");
-  }
-
-  fclose(foutCSV);
-
-  if (isTXT) {
-    printf("%s\n", outname);
-  }
+  Long64_t const nmaxentr = 12500000 / nvar;
+  int const nentries = TMath::Min(workingtree->GetEntriesFast(), nmaxentr);
 
   if (isRoot) {
-    outname = Form("/tmp/%sfrom%sto%s.root", school, dateIn, dateOut);
-    TFile foutRoot(outname, "RECREATE");
+    TTree outputTree("eee", "eee");
+    for (int j = 0; j != nvar; ++j) {
+      outputTree.Branch(
+          var[j].Data(), addvar[j], Form("%s/%s", var[j].Data(), type[j]));
+    }
+
+    for (int i = 0; i != nentries; ++i) {
+      workingtree->GetEvent(i);
+
+      Float_t const xd = workingtree->GetLeaf("XDir")->GetValue();
+      Float_t const yd = workingtree->GetLeaf("YDir")->GetValue();
+      Float_t const zd = workingtree->GetLeaf("ZDir")->GetValue();
+
+      for (int j = 0; j != nvar; ++j) {
+        if (!(var[j].Contains("Theta") || var[j].Contains("Phi"))) {
+          if (isInteger[j]) {
+            ivar[j] = workingtree->GetLeaf(var[j].Data())->GetValue();
+          } else {
+            fvar[j] = workingtree->GetLeaf(var[j].Data())->GetValue();
+          }
+        } else if (var[j].Contains("Theta")) {
+          fvar[j] = TMath::ACos(zd) * TMath::RadToDeg();
+        } else if (var[j].Contains("Phi")) {
+          fvar[j] = TMath::ATan2(yd, xd) * TMath::RadToDeg();
+        }
+      }
+      outputTree.Fill();
+    }
+
+    TFile foutRoot(outname.c_str(), "RECREATE");
     outputTree.Write();
     foutRoot.Close();
+  } else {
+    std::ofstream outCSV(outname.c_str());
+
+    for (int i = 0; i != nvar - 1; ++i) {
+      outCSV << var[i].Data() << ',';
+    }
+    outCSV << var[nvar - 1] << '\n';
+
+    for (int i = 0; i != nentries; ++i) {
+      workingtree->GetEvent(i);
+
+      Float_t const xd = workingtree->GetLeaf("XDir")->GetValue();
+      Float_t const yd = workingtree->GetLeaf("YDir")->GetValue();
+      Float_t const zd = workingtree->GetLeaf("ZDir")->GetValue();
+
+      for (int j = 0; j != nvar - 1; ++j) {
+        if (!(var[j].Contains("Theta") || var[j].Contains("Phi"))) {
+          outCSV << workingtree->GetLeaf(var[j].Data())->GetValue() << ',';
+        } else if (var[j].Contains("Theta")) {
+          outCSV << TMath::ACos(zd) * TMath::RadToDeg() << ',';
+        } else if (var[j].Contains("Phi")) {
+          outCSV << TMath::ATan2(yd, xd) * TMath::RadToDeg() << ',';
+        }
+      }
+
+      {
+        int const j = nvar - 1;
+        if (!(var[j].Contains("Theta") || var[j].Contains("Phi"))) {
+          outCSV << workingtree->GetLeaf(var[j].Data())->GetValue() << '\n';
+        } else if (var[j].Contains("Theta")) {
+          outCSV << TMath::ACos(zd) * TMath::RadToDeg() << '\n';
+        } else if (var[j].Contains("Phi")) {
+          outCSV << TMath::ATan2(yd, xd) * TMath::RadToDeg() << '\n';
+        }
+      }
+    }
   }
 
   std::cout << outname << '\n';
