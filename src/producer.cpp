@@ -55,7 +55,7 @@ int main(int argc, char** argv)
   void* addvar[nmaxvar];
   Int_t ivar[nmaxvar];
   Float_t fvar[nmaxvar];
-  Bool_t isInteger[nmaxvar];
+  bool isInteger[nmaxvar];
 
   bool const is_mc = CfrString(argv[6], "1");
 
@@ -85,10 +85,10 @@ int main(int argc, char** argv)
   for (Int_t j = 0; j < nvar; j++) {
     if (CfrString(type[j], "I")) {
       addvar[j] = &(ivar[j]);
-      isInteger[j] = 1;
+      isInteger[j] = true;
     } else {
       addvar[j] = &(fvar[j]);
-      isInteger[j] = 0;
+      isInteger[j] = false;
     }
   }
 
