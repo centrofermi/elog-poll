@@ -258,6 +258,8 @@ int main(int argc, char** argv)
   }
 
   std::cout << outname << '\n';
+  std::cout.flush();
+  _exit(0);
 }
 
 date parse_date(char const* str)
