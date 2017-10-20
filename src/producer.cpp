@@ -253,9 +253,9 @@ int main(int argc, char** argv)
         int const j = nvar - 1;
         if (!(var[j].Contains("Theta") || var[j].Contains("Phi"))) {
           if (isInteger[j]) {
-            outCSV << static_cast<int64_t>(workingtree->GetLeaf(var[j].Data())->GetValue()) << ',';
+            outCSV << static_cast<int64_t>(workingtree->GetLeaf(var[j].Data())->GetValue()) << '\n';
           } else {
-            outCSV << workingtree->GetLeaf(var[j].Data())->GetValue() << ',';
+            outCSV << workingtree->GetLeaf(var[j].Data())->GetValue() << '\n';
           }
         } else if (var[j].Contains("Theta")) {
           outCSV << TMath::ACos(zd) * TMath::RadToDeg() << '\n';
