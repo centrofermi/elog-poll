@@ -221,6 +221,7 @@ int main(int argc, char** argv)
     foutRoot.Close();
   } else {
     std::ofstream outCSV(outname.c_str());
+    outCSV << std::fixed;
 
     for (int i = 0; i != nvar - 1; ++i) {
       outCSV << var[i].Data() << ',';
@@ -236,7 +237,11 @@ int main(int argc, char** argv)
 
       for (int j = 0; j != nvar - 1; ++j) {
         if (!(var[j].Contains("Theta") || var[j].Contains("Phi"))) {
-          outCSV << workingtree->GetLeaf(var[j].Data())->GetValue() << ',';
+          if (isInteger[j]) {
+            outCSV << static_cast<int64_t>(workingtree->GetLeaf(var[j].Data())->GetValue()) << ',';
+          } else {
+            outCSV << workingtree->GetLeaf(var[j].Data())->GetValue() << ',';
+          }
         } else if (var[j].Contains("Theta")) {
           outCSV << TMath::ACos(zd) * TMath::RadToDeg() << ',';
         } else if (var[j].Contains("Phi")) {
@@ -247,7 +252,11 @@ int main(int argc, char** argv)
       {
         int const j = nvar - 1;
         if (!(var[j].Contains("Theta") || var[j].Contains("Phi"))) {
-          outCSV << workingtree->GetLeaf(var[j].Data())->GetValue() << '\n';
+          if (isInteger[j]) {
+            outCSV << static_cast<int64_t>(workingtree->GetLeaf(var[j].Data())->GetValue()) << ',';
+          } else {
+            outCSV << workingtree->GetLeaf(var[j].Data())->GetValue() << ',';
+          }
         } else if (var[j].Contains("Theta")) {
           outCSV << TMath::ACos(zd) * TMath::RadToDeg() << '\n';
         } else if (var[j].Contains("Phi")) {
