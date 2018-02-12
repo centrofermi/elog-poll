@@ -193,7 +193,7 @@ int main(int argc, char** argv)
 
   // before to apply cuts add extra branch for pressure
   TTree *cloned = chain.CloneTree();
-  if (isPressure = kTRUE) {
+  if (isPressure == kTRUE) {
     TBranch *bPr = cloned->Branch("Pressure", &pressure, "Pressure/F");
     TString namefile;
     for (Int_t i = 0; i < chain.GetEntries(); ++i){
