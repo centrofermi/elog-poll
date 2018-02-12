@@ -193,21 +193,21 @@ int main(int argc, char** argv)
 
   // before to apply cuts add extra branch for pressure
   TTree *cloned = chain.CloneTree();
-  if(isPressure=kTRUE){
-    TBranch *bPr = cloned->Branch("Pressure",&pressure,"Pressure/F");
+  if (isPressure = kTRUE) {
+    TBranch *bPr = cloned->Branch("Pressure", &pressure, "Pressure/F");
     TString namefile;
-    for(Int_t i=0;i < chain.GetEntries();i++){
-       chain.GetEvent(i);
+    for (Int_t i = 0; i < chain.GetEntries(); ++i){
+      chain.GetEvent(i);
 
-       if(namefile.CompareTo(chain.GetFile()->GetName())){
-          // get pressure
-  	  TFile *ftemp = new TFile(chain.GetFile()->GetName());
-          TTree *weather = (TTree *) ftemp->Get("Weather");
-          weather->GetEvent(0);
-          pressure = weather->GetLeaf("Pressure")->GetValue();
-          namefile = chain.GetFile()->GetName();
-       }
-       bPr->Fill();
+      if (namefile.CompareTo(chain.GetFile()->GetName())) {
+        // get pressure
+        TFile *ftemp = new TFile(chain.GetFile()->GetName());
+        TTree *weather = (TTree *) ftemp->Get("Weather");
+        weather->GetEvent(0);
+        pressure = weather->GetLeaf("Pressure")->GetValue();
+        namefile = chain.GetFile()->GetName();
+      }
+      bPr->Fill();
     }
   }
 
@@ -222,8 +222,8 @@ int main(int argc, char** argv)
     for (int j = 0; j != nvar; ++j) {
       outputTree.Branch(
           var[j].Data(), addvar[j], Form("%s/%s", var[j].Data(), type[j]));
-     }
-    
+    }
+
     for (int i = 0; i != nentries; ++i) {
       workingtree->GetEvent(i);
 
