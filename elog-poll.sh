@@ -141,9 +141,9 @@ function handler() {
   local -r telescope_id="$(echo "${data}" | "${ELOG_PARSER}" '%[Telescope ID]')"
   local -r is_mc="$(echo "${data}" | "${ELOG_PARSER}" '%[MC]')"
 
-  local -r param_types=(I I I F F F F F F)
+  local -r param_types=(I I I F F F F F F F)
   local -r parameters=(RunNumber Seconds Nanoseconds Theta Phi ChiSquare \
-                       TimeOfFlight TrackLength DeltaTime)
+                       TimeOfFlight TrackLength DeltaTime Pressure)
 
   local options=()
   for ((i = 0; i < "${#parameters[@]}"; ++i)); do
