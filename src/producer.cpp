@@ -201,8 +201,8 @@ int main(int argc, char** argv)
 
       if (namefile.CompareTo(chain.GetFile()->GetName())) {
         // get pressure
-        TFile *ftemp = new TFile(chain.GetFile()->GetName());
-        TTree *weather = (TTree *) ftemp->Get("Weather");
+        TFile ftemp(chain.GetFile()->GetName());
+        TTree* weather = (TTree *) ftemp.Get("Weather");
         weather->GetEvent(0);
         pressure = weather->GetLeaf("Pressure")->GetValue();
         namefile = chain.GetFile()->GetName();
