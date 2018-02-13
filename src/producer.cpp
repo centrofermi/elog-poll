@@ -20,8 +20,6 @@ bool CfrString(const char* str1, const char* str2);
 
 int main(int argc, char** argv)
 {
-  // variables to add pressure as an option for the output
-  Bool_t isPressure=kFALSE;
   Float_t pressure=0;
 
   gErrorIgnoreLevel = kFatal;
@@ -146,12 +144,15 @@ int main(int argc, char** argv)
   chain.SetBranchStatus("YDir", 1);
   chain.SetBranchStatus("ZDir", 1);
 
+  // variable to add pressure as an option for the output
+  bool reqPressure = false;
+
   for (Int_t j = 0; j < nvar; j++) {
     if (!(var[j].Contains("Theta") || var[j].Contains("Phi")))
       chain.SetBranchStatus(var[j].Data(), 1);
 
-      isPressure=kTRUE;
     if (var[j].Contains("Pressure")) {
+      reqPressure = true;
     }
   }
 
@@ -193,7 +194,7 @@ int main(int argc, char** argv)
 
   // before to apply cuts add extra branch for pressure
   TTree *cloned = chain.CloneTree();
-  if (isPressure == kTRUE) {
+  if (reqPressure) {
     TBranch *bPr = cloned->Branch("Pressure", &pressure, "Pressure/F");
     TString namefile;
     for (Int_t i = 0; i < chain.GetEntries(); ++i) {
