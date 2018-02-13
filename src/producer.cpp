@@ -196,7 +196,7 @@ int main(int argc, char** argv)
   if (isPressure == kTRUE) {
     TBranch *bPr = cloned->Branch("Pressure", &pressure, "Pressure/F");
     TString namefile;
-    for (Int_t i = 0; i < chain.GetEntries(); ++i){
+    for (Int_t i = 0; i < chain.GetEntries(); ++i) {
       chain.GetEvent(i);
 
       if (namefile.CompareTo(chain.GetFile()->GetName())) {
