@@ -150,8 +150,8 @@ int main(int argc, char** argv)
     if (!(var[j].Contains("Theta") || var[j].Contains("Phi")))
       chain.SetBranchStatus(var[j].Data(), 1);
 
-    if (var[j].Contains("Pressure")){
       isPressure=kTRUE;
+    if (var[j].Contains("Pressure")) {
     }
   }
 
