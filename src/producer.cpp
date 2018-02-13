@@ -232,16 +232,16 @@ int main(int argc, char** argv)
       Float_t const zd = workingtree->GetLeaf("ZDir")->GetValue();
 
       for (int j = 0; j != nvar; ++j) {
-        if (!(var[j].Contains("Theta") || var[j].Contains("Phi"))) {
+        if (var[j].Contains("Theta")) {
+          fvar[j] = TMath::ACos(zd) * TMath::RadToDeg();
+        } else if (var[j].Contains("Phi")) {
+          fvar[j] = TMath::ATan2(yd, xd) * TMath::RadToDeg();
+        } else {
           if (isInteger[j]) {
             ivar[j] = workingtree->GetLeaf(var[j].Data())->GetValue();
           } else {
             fvar[j] = workingtree->GetLeaf(var[j].Data())->GetValue();
           }
-        } else if (var[j].Contains("Theta")) {
-          fvar[j] = TMath::ACos(zd) * TMath::RadToDeg();
-        } else if (var[j].Contains("Phi")) {
-          fvar[j] = TMath::ATan2(yd, xd) * TMath::RadToDeg();
         }
       }
       outputTree.Fill();
@@ -267,31 +267,32 @@ int main(int argc, char** argv)
       Float_t const zd = workingtree->GetLeaf("ZDir")->GetValue();
 
       for (int j = 0; j != nvar - 1; ++j) {
-        if (!(var[j].Contains("Theta") || var[j].Contains("Phi"))) {
+        if (var[j].Contains("Theta")) {
+          outCSV << TMath::ACos(zd) * TMath::RadToDeg() << ',';
+        } else if (var[j].Contains("Phi")) {
+          outCSV << TMath::ATan2(yd, xd) * TMath::RadToDeg() << ',';
+        } else {
           if (isInteger[j]) {
             outCSV << static_cast<int64_t>(workingtree->GetLeaf(var[j].Data())->GetValue()) << ',';
           } else {
             outCSV << workingtree->GetLeaf(var[j].Data())->GetValue() << ',';
           }
-        } else if (var[j].Contains("Theta")) {
-          outCSV << TMath::ACos(zd) * TMath::RadToDeg() << ',';
-        } else if (var[j].Contains("Phi")) {
-          outCSV << TMath::ATan2(yd, xd) * TMath::RadToDeg() << ',';
         }
       }
 
       {
         int const j = nvar - 1;
-        if (!(var[j].Contains("Theta") || var[j].Contains("Phi"))) {
+
+        if (var[j].Contains("Theta")) {
+          outCSV << TMath::ACos(zd) * TMath::RadToDeg() << '\n';
+        } else if (var[j].Contains("Phi")) {
+          outCSV << TMath::ATan2(yd, xd) * TMath::RadToDeg() << '\n';
+        } else {
           if (isInteger[j]) {
             outCSV << static_cast<int64_t>(workingtree->GetLeaf(var[j].Data())->GetValue()) << '\n';
           } else {
             outCSV << workingtree->GetLeaf(var[j].Data())->GetValue() << '\n';
           }
-        } else if (var[j].Contains("Theta")) {
-          outCSV << TMath::ACos(zd) * TMath::RadToDeg() << '\n';
-        } else if (var[j].Contains("Phi")) {
-          outCSV << TMath::ATan2(yd, xd) * TMath::RadToDeg() << '\n';
         }
       }
     }
