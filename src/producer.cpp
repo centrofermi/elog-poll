@@ -11,12 +11,25 @@
 #include <TMath.h>
 #include <TString.h>
 #include <TBranch.h>
+#include <directory.hpp>
 
 using date = std::tuple<int, int, int>;
 
 char* NextDay(const char* currentday);
 bool IsInRange(const char* currentday, const char* lastday);
 bool CfrString(const char* str1, const char* str2);
+
+bool ProcessSingleFile(const char *filename,std::ofstream &outCSV,Int_t nvar,bool isRoot,bool reqPressure,TString &cut);
+
+const Int_t nmaxvar = 20;
+TString var[nmaxvar];
+const char* type[nmaxvar];
+void* addvar[nmaxvar];
+Int_t ivar[nmaxvar];
+Float_t fvar[nmaxvar];
+bool isInteger[nmaxvar];
+TTree *outputTree;
+Int_t ntotevent = 0;
 
 int main(int argc, char** argv)
 {
@@ -52,14 +65,6 @@ int main(int argc, char** argv)
   if (CfrString(argv[5], "")) {
     cutMy = "(1)";
   }
-
-  const Int_t nmaxvar = 20;
-  TString var[nmaxvar];
-  const char* type[nmaxvar];
-  void* addvar[nmaxvar];
-  Int_t ivar[nmaxvar];
-  Float_t fvar[nmaxvar];
-  bool isInteger[nmaxvar];
 
   bool const is_mc = CfrString(argv[6], "1");
 
@@ -103,19 +108,71 @@ int main(int argc, char** argv)
   Int_t ndays = 0;
   int nfile = 0;
 
-  TChain chain("Events");
+  // variable to add pressure as an option for the output
+  bool reqPressure = false;
 
+  for (Int_t j = 0; j < nvar; j++) {
+    if (var[j].Contains("Pressure")) {
+      reqPressure = true;
+    }
+  }
+
+  if (cutMy.Contains("Theta")) {
+    cutMy.ReplaceAll("Theta", "TMath::ACos(ZDir[0])*TMath::RadToDeg()");
+  }
+  if (cutMy.Contains("Phi")) {
+    cutMy.ReplaceAll(
+        "Phi", "TMath::ATan2(YDir[0],XDir[0])*TMath::RadToDeg()");
+  }
+
+  if (cutMy.Contains("ChiSquare")) {
+    cutMy.ReplaceAll("ChiSquare", "ChiSquare[0]");
+  }
+  if (cutMy.Contains("TimeOfFlight")) {
+    cutMy.ReplaceAll("TimeOfFlight", "TimeOfFlight[0]");
+  }
+  if (cutMy.Contains("TrackLength")) {
+    cutMy.ReplaceAll("TrackLength", "TrackLength[0]");
+  }
+
+  cutBase += cutMy;
+
+  std::ostringstream oss;
+  oss << "/tmp/" << school << "from" << dateIn << "to" << dateOut << (isRoot ? ".root" : ".csv");
+
+  std::string const outname = oss.str();
+
+
+  TFile foutRoot(outname.c_str(), "RECREATE");
+  outputTree = new TTree("eee", "eee");
+  for (int j = 0; j != nvar; ++j) {
+    outputTree->Branch(
+		       var[j].Data(), addvar[j], Form("%s/%s", var[j].Data(), type[j]));
+  }
+  
+
+  std::ofstream outCSV(outname.c_str());
+    outCSV << std::fixed;
+    
+    for (int i = 0; i != nvar - 1; ++i) {
+      outCSV << var[i].Data() << ',';
+    }
+    outCSV << var[nvar - 1] << '\n';
+
+  // analyze single files
   while (IsInRange(currentday, dateOut) && ndays < 30) {
-    std::ostringstream oss;
+    directory dir = open_dir(Form("%s/%s/%s/",pathToRecon,school,currentday));
+    
+    std::vector<std::string> file_dot_root = matching_items(dir, ".*.bin"); // la stringa passata alla funzione è una regular expression
 
-    oss
-      << pathToRecon << '/'
-      << school << '/'
-      << currentday << '/'
-      << schoolInFile << "*dst.root";
-
-    nfile += chain.Add(oss.str().c_str());
-
+    nfile=file_dot_root.size();
+    for(int i=0;i<nfile;i++){
+      std::cout << i << ")" << file_dot_root.at(i)<< std::endl;
+      std::string y = file_dot_root.at(i);
+      ProcessSingleFile(y.c_str(),outCSV,nvar,isRoot,reqPressure,cutBase);
+      
+    }       
+  
     ++ndays;
 
     currentday = NextDay(currentday);
@@ -131,172 +188,9 @@ int main(int argc, char** argv)
     return 3;
   }
 
-  if (!chain.GetEntriesFast()) {
-    std::cout << "Error: No data available in the requested period!\n";
-    return 4;
-  }
-
-  // minimal info
-  chain.SetBranchStatus("*", 0);
-  chain.SetBranchStatus("StatusCode", 1);
-  chain.SetBranchStatus("XDir", 1);
-  chain.SetBranchStatus("YDir", 1);
-  chain.SetBranchStatus("ZDir", 1);
-
-  // variable to add pressure as an option for the output
-  bool reqPressure = false;
-
-  for (Int_t j = 0; j < nvar; j++) {
-    if (!(var[j].Contains("Theta") || var[j].Contains("Phi")))
-      chain.SetBranchStatus(var[j].Data(), 1);
-
-    if (var[j].Contains("Pressure")) {
-      reqPressure = true;
-    }
-  }
-
-  if (cutMy.Contains("Theta")) {
-    cutMy.ReplaceAll("Theta", "TMath::ACos(ZDir[0])*TMath::RadToDeg()");
-  }
-  if (cutMy.Contains("Phi")) {
-    cutMy.ReplaceAll(
-        "Phi", "TMath::ATan2(YDir[0],XDir[0])*TMath::RadToDeg()");
-  }
-
-  if (cutMy.Contains("RunNumber"))
-    chain.SetBranchStatus("RunNumber", 1);
-  if (cutMy.Contains("Seconds"))
-    chain.SetBranchStatus("Seconds", 1);
-  if (cutMy.Contains("Nanoseconds"))
-    chain.SetBranchStatus("Nanoseconds", 1);
-  if (cutMy.Contains("ChiSquare")) {
-    chain.SetBranchStatus("ChiSquare", 1);
-    cutMy.ReplaceAll("ChiSquare", "ChiSquare[0]");
-  }
-  if (cutMy.Contains("TimeOfFlight")) {
-    chain.SetBranchStatus("TimeOfFlight", 1);
-    cutMy.ReplaceAll("TimeOfFlight", "TimeOfFlight[0]");
-  }
-  if (cutMy.Contains("TrackLength")) {
-    chain.SetBranchStatus("TrackLength", 1);
-    cutMy.ReplaceAll("TrackLength", "TrackLength[0]");
-  }
-  if (cutMy.Contains("DeltaTime"))
-    chain.SetBranchStatus("DeltaTime", 1);
-
-  cutBase += cutMy;
-
-  std::ostringstream oss;
-  oss << "/tmp/" << school << "from" << dateIn << "to" << dateOut << (isRoot ? ".root" : ".csv");
-
-  std::string const outname = oss.str();
-
-  // before to apply cuts add extra branch for pressure
-  TTree *cloned = chain.CloneTree();
-  if (reqPressure) {
-    Float_t pressure = 0;
-    TBranch *bPr = cloned->Branch("Pressure", &pressure, "Pressure/F");
-    TString namefile;
-    for (Int_t i = 0; i < chain.GetEntries(); ++i) {
-      chain.GetEvent(i);
-
-      if (namefile.CompareTo(chain.GetFile()->GetName())) {
-        // get pressure
-        TFile ftemp(chain.GetFile()->GetName());
-        TTree* weather = (TTree *) ftemp.Get("Weather");
-        weather->GetEvent(0);
-        pressure = weather->GetLeaf("Pressure")->GetValue();
-        namefile = chain.GetFile()->GetName();
-      }
-      bPr->Fill();
-    }
-  }
-
-  TTree* const workingtree = cloned->CopyTree(cutBase.Data());
-
-  Long64_t const nmaxentr = 12500000 / nvar;
-  int const nentries = TMath::Min(workingtree->GetEntriesFast(), nmaxentr);
-
   if (isRoot) {
-    TFile foutRoot(outname.c_str(), "RECREATE");
-    TTree outputTree("eee", "eee");
-    for (int j = 0; j != nvar; ++j) {
-      outputTree.Branch(
-          var[j].Data(), addvar[j], Form("%s/%s", var[j].Data(), type[j]));
-    }
-
-    for (int i = 0; i != nentries; ++i) {
-      workingtree->GetEvent(i);
-
-      Float_t const xd = workingtree->GetLeaf("XDir")->GetValue();
-      Float_t const yd = workingtree->GetLeaf("YDir")->GetValue();
-      Float_t const zd = workingtree->GetLeaf("ZDir")->GetValue();
-
-      for (int j = 0; j != nvar; ++j) {
-        if (var[j].Contains("Theta")) {
-          fvar[j] = TMath::ACos(zd) * TMath::RadToDeg();
-        } else if (var[j].Contains("Phi")) {
-          fvar[j] = TMath::ATan2(yd, xd) * TMath::RadToDeg();
-        } else {
-          if (isInteger[j]) {
-            ivar[j] = workingtree->GetLeaf(var[j].Data())->GetValue();
-          } else {
-            fvar[j] = workingtree->GetLeaf(var[j].Data())->GetValue();
-          }
-        }
-      }
-      outputTree.Fill();
-    }
-
-//    TFile foutRoot(outname.c_str(), "RECREATE");
-    outputTree.Write();
+    outputTree->Write();
     foutRoot.Close();
-  } else {
-    std::ofstream outCSV(outname.c_str());
-    outCSV << std::fixed;
-
-    for (int i = 0; i != nvar - 1; ++i) {
-      outCSV << var[i].Data() << ',';
-    }
-    outCSV << var[nvar - 1] << '\n';
-
-    for (int i = 0; i != nentries; ++i) {
-      workingtree->GetEvent(i);
-
-      Float_t const xd = workingtree->GetLeaf("XDir")->GetValue();
-      Float_t const yd = workingtree->GetLeaf("YDir")->GetValue();
-      Float_t const zd = workingtree->GetLeaf("ZDir")->GetValue();
-
-      for (int j = 0; j != nvar - 1; ++j) {
-        if (var[j].Contains("Theta")) {
-          outCSV << TMath::ACos(zd) * TMath::RadToDeg() << ',';
-        } else if (var[j].Contains("Phi")) {
-          outCSV << TMath::ATan2(yd, xd) * TMath::RadToDeg() << ',';
-        } else {
-          if (isInteger[j]) {
-            outCSV << static_cast<int64_t>(workingtree->GetLeaf(var[j].Data())->GetValue()) << ',';
-          } else {
-            outCSV << workingtree->GetLeaf(var[j].Data())->GetValue() << ',';
-          }
-        }
-      }
-
-      {
-        int const j = nvar - 1;
-
-        if (var[j].Contains("Theta")) {
-          outCSV << TMath::ACos(zd) * TMath::RadToDeg() << '\n';
-        } else if (var[j].Contains("Phi")) {
-          outCSV << TMath::ATan2(yd, xd) * TMath::RadToDeg() << '\n';
-        } else {
-          if (isInteger[j]) {
-            outCSV << static_cast<int64_t>(workingtree->GetLeaf(var[j].Data())->GetValue()) << '\n';
-          } else {
-            outCSV << workingtree->GetLeaf(var[j].Data())->GetValue() << '\n';
-          }
-        }
-      }
-    }
   }
 
   std::cout << outname << '\n';
@@ -379,4 +273,100 @@ bool IsInRange(const char* currentday, const char* lastday)
 bool CfrString(const char* str1, const char* str2)
 {
   return strncmp(str1, str2, 100) == 0;
+}
+
+bool ProcessSingleFile(const char *filename,std::ofstream &outCSV,Int_t nvar,bool isRoot,bool reqPressure,TString &cut){
+  TFile fin(filename);
+  TTree *tree = (TTree *) fin.Get("Events");
+
+  TTree* const chain = tree->CopyTree(cut.Data());
+
+  TTree* weather = (TTree *) fin.Get("Weather");
+  weather->GetEvent(0);
+  Float_t pressure = weather->GetLeaf("Pressure")->GetValue();
+
+  Long64_t const nmaxentr = 12500000 / nvar;
+
+  if(ntotevent > nmaxentr) return 1;
+
+  int nentries = chain->GetEntriesFast();
+
+  if(ntotevent + nentries > nmaxentr) nentries = nmaxentr - ntotevent;
+
+  if (isRoot) {
+    for (int i = 0; i != nentries; ++i) {
+      chain->GetEvent(i);
+      
+      ntotevent++;
+      Float_t const xd = chain->GetLeaf("XDir")->GetValue();
+      Float_t const yd = chain->GetLeaf("YDir")->GetValue();
+      Float_t const zd = chain->GetLeaf("ZDir")->GetValue();
+      
+      for (int j = 0; j != nvar; ++j) {
+        if (var[j].Contains("Pressure")) {
+          fvar[j] = pressure;
+        } 
+        else if (var[j].Contains("Theta")) {
+          fvar[j] = TMath::ACos(zd) * TMath::RadToDeg();
+        } 
+	else if (var[j].Contains("Phi")) {
+          fvar[j] = TMath::ATan2(yd, xd) * TMath::RadToDeg();
+        }
+	else {
+          if (isInteger[j]) {
+            ivar[j] = chain->GetLeaf(var[j].Data())->GetValue();
+          } else {
+            fvar[j] = chain->GetLeaf(var[j].Data())->GetValue();
+          }
+        }
+      }
+      outputTree->Fill();
+    }
+  }
+  
+  else {
+    for (int i = 0; i != nentries; ++i) {
+      chain->GetEvent(i);
+      ntotevent++;
+      
+      Float_t const xd = chain->GetLeaf("XDir")->GetValue();
+      Float_t const yd = chain->GetLeaf("YDir")->GetValue();
+      Float_t const zd = chain->GetLeaf("ZDir")->GetValue();
+      
+      for (int j = 0; j != nvar - 1; ++j) {
+	if (var[j].Contains("Pressure")) {
+	  outCSV << pressure << ',';
+	} else if (var[j].Contains("Theta")) {
+	  outCSV << TMath::ACos(zd) * TMath::RadToDeg() << ',';
+	} else if (var[j].Contains("Phi")) {
+	  outCSV << TMath::ATan2(yd, xd) * TMath::RadToDeg() << ',';
+	} else {
+	  if (isInteger[j]) {
+	    outCSV << static_cast<int64_t>(chain->GetLeaf(var[j].Data())->GetValue()) << ',';
+	  } else {
+	    outCSV << chain->GetLeaf(var[j].Data())->GetValue() << ',';
+	  }
+	}
+	
+	nvar - 1;
+	
+	if (var[j].Contains("Pressure")) {
+	  outCSV << pressure << '\n';
+	} else if (var[j].Contains("Theta")) {
+          outCSV << TMath::ACos(zd) * TMath::RadToDeg() << '\n';
+        } else if (var[j].Contains("Phi")) {
+          outCSV << TMath::ATan2(yd, xd) * TMath::RadToDeg() << '\n';
+        } 
+	else {
+          if (isInteger[j]) {
+            outCSV << static_cast<int64_t>(chain->GetLeaf(var[j].Data())->GetValue()) << '\n';
+          } else {
+            outCSV << chain->GetLeaf(var[j].Data())->GetValue() << '\n';
+          }
+        }
+      }
+    }
+  }
+  
+  if(chain) delete chain;
 }
