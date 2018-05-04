@@ -21,6 +21,9 @@ endif()
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/")
 
+# Local include directory
+include_directories(${PROJECT_SOURCE_DIR}/include/)
+
 find_package(ROOT 5.32.00 REQUIRED)
 
 # ROOT include dirs
@@ -35,3 +38,7 @@ target_link_libraries(elog-parse elog)
 # Producer
 add_executable(producer src/producer.cpp)
 target_link_libraries(producer ${ROOT_LIBRARIES})
+
+# Test
+add_executable(test_directory test/test_directory.cpp)
+add_test(NAME directory COMMAND test_directory)

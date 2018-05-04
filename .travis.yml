@@ -47,8 +47,9 @@ jobs:
         - cd build
         - export CXX=g++-4.9
         - export ROOTSYS=/usr
-        - cmake ../
+        - cmake ../ -DBUILD_TESTING=ON
         - make
+        - make test
         - cd ..
         - '[ "$(cat test/post.txt | build/elog-parse "%[id]")" == "1" ]'
         - '[ "$(cat test/post.txt | build/elog-parse "%[Cut 1]")" == "E > 10" ]'
