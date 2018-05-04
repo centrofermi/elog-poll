@@ -21,6 +21,9 @@ endif()
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/")
 
+# Local include directory
+include_directories(${PROJECT_SOURCE_DIR}/include/)
+
 find_package(ROOT 5.32.00 REQUIRED)
 
 # ROOT include dirs

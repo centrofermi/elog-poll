@@ -10,6 +10,9 @@
 auto dircloser = [](DIR* dir) { return closedir(dir); };
 using directory = std::unique_ptr<DIR, decltype(dircloser)>;
 
+inline bool comparator (const std::string &a, const std::string &b) {
+        return a<b;
+}
 
 inline directory open_dir(std::string const& path)
 {
@@ -32,6 +35,9 @@ inline std::vector<std::string> ls(directory& dir)
   while ((element = readdir(dir.get()))) {
     ret.push_back(element->d_name);
   }
+
+  std::sort(ret.begin(), ret.end(), comparator);
+  
 
   return ret;
 
@@ -80,7 +86,6 @@ inline std::vector<std::string> matching_items(directory& dir, std::string patte
   return ret;
 
 }
-
 
 
 #endif // DIRECTORY_HPP
