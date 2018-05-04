@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>      // std::setprecision
 #include <fstream>
 #include <string>
 #include <sstream>
@@ -155,8 +156,8 @@ int main(int argc, char** argv)
   if(isRoot) nameCSV = "/tmp/dummy";
 
   std::ofstream outCSV(nameCSV);
-  outCSV << std::fixed;
-  
+  outCSV << std::setprecision(9) << std::fixed;
+
   for (int i = 0; i != nvar - 1; ++i) {
     outCSV << var[i].Data() << ',';
   }
@@ -354,20 +355,20 @@ bool ProcessSingleFile(const char *filename,std::ofstream &outCSV,Int_t nvar,boo
 	    outCSV << chain->GetLeaf(var[j].Data())->GetValue() << ',';
 	  }
 	}
+      }
 	
-	if (var[nvar-1].Contains("Pressure")) {
-	  outCSV << int(pressure) << '\n';
-	} else if (var[nvar-1].Contains("Theta")) {
-          outCSV << TMath::ACos(zd) * TMath::RadToDeg() << '\n';
-        } else if (var[nvar-1].Contains("Phi")) {
-          outCSV << TMath::ATan2(yd, xd) * TMath::RadToDeg() << '\n';
-        } 
-	else {
-          if (isInteger[nvar-1]) {
-            outCSV << static_cast<int64_t>(chain->GetLeaf(var[nvar-1].Data())->GetValue()) << '\n';
-          } else {
-            outCSV << chain->GetLeaf(var[nvar-1].Data())->GetValue() << '\n';
-          }
+      if (var[nvar-1].Contains("Pressure")) {
+        outCSV << int(pressure) << '\n';
+      } else if (var[nvar-1].Contains("Theta")) {
+        outCSV << TMath::ACos(zd) * TMath::RadToDeg() << '\n';
+      } else if (var[nvar-1].Contains("Phi")) {
+        outCSV << TMath::ATan2(yd, xd) * TMath::RadToDeg() << '\n';
+      } 
+      else {
+        if (isInteger[nvar-1]) {
+          outCSV << static_cast<int64_t>(chain->GetLeaf(var[nvar-1].Data())->GetValue()) << '\n';
+        } else {
+          outCSV << chain->GetLeaf(var[nvar-1].Data())->GetValue() << '\n';
         }
       }
     }
