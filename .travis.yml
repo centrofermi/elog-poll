@@ -40,7 +40,7 @@ jobs:
     - stage: check
       script:
         - docker run --rm -v $(pwd):/code peterdavehello/debian-8-shellcheck bash -c 'shellcheck /code/*.sh'
-        - docker run --rm -v $(pwd):/code buddaci/cppcheck cppcheck /code/src/
+        - docker run --rm -v $(pwd):/code buddaci/cppcheck cppcheck /code/src/ /code/include/ /code/test/
     - stage: build
       script:
         - mkdir build
