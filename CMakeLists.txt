@@ -40,5 +40,6 @@ add_executable(producer src/producer.cpp)
 target_link_libraries(producer ${ROOT_LIBRARIES})
 
 # Test
+enable_testing()
 add_executable(test_directory test/test_directory.cpp)
 add_test(NAME directory COMMAND test_directory)
