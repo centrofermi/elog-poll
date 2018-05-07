@@ -2,7 +2,7 @@
 #include <directory.hpp>
 
 #define throw_assert(assertion, message) do {\
-    if (!(assertion)) throw std::runtime_error("condition \`" #assertion "` failed: " message); \
+    if (!(assertion)) throw std::runtime_error("condition `" #assertion "` failed: " message); \
 } while (0);
 
 int main()
