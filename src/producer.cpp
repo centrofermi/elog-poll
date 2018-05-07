@@ -13,6 +13,7 @@
 #include <TString.h>
 #include <TBranch.h>
 #include <TTree.h>
+#include <sys/stat.h>
 
 #include <directory.hpp>
 
@@ -22,7 +23,7 @@ char* NextDay(const char* currentday);
 bool IsInRange(const char* currentday, const char* lastday);
 bool CfrString(const char* str1, const char* str2);
 
-bool ProcessSingleFile(const char *filename,std::ofstream &outCSV,Int_t nvar,bool isRoot,bool reqPressure,TString &cut);
+int ProcessSingleFile(const char *filename,std::ofstream &outCSV,Int_t nvar,bool isRoot,bool reqPressure,TString &cut);
 
 const Int_t nmaxvar = 20;
 TString var[nmaxvar];
@@ -63,7 +64,9 @@ int main(int argc, char** argv)
   const char* dateIn = argv[3];
   const char* dateOut = argv[4];
 
-  TString cutMy(Form("(%s)", argv[5]));
+  std::string cutstring = argv[5];
+
+  TString cutMy(cutstring.c_str());
   if (CfrString(argv[5], "")) {
     cutMy = "(1)";
   }
@@ -105,7 +108,7 @@ int main(int argc, char** argv)
 
   TString cutBase("(StatusCode==0)&&");
 
-  const char* currentday = dateIn;
+  std::string currentday = dateIn;
 
   Int_t ndays = 0;
   int nfile = 0;
@@ -148,8 +151,11 @@ int main(int argc, char** argv)
   if(isRoot) foutRoot =  new TFile(outname.c_str(), "RECREATE");
   outputTree = new TTree("eee", "eee");
   for (int j = 0; j != nvar; ++j) {
+    std::string strbranch = var[j].Data();
+    strbranch += '/';
+    strbranch += type[j];
     outputTree->Branch(
-		       var[j].Data(), addvar[j], Form("%s/%s", var[j].Data(), type[j]));
+		       var[j].Data(), addvar[j], strbranch.c_str());
   }
   
   const char *nameCSV = outname.c_str();
@@ -164,23 +170,45 @@ int main(int argc, char** argv)
   outCSV << var[nvar - 1] << '\n';
 
   // analyze single files
-  while (IsInRange(currentday, dateOut) && ndays < 30) {
-    directory dir = open_dir(Form("%s/%s/%s/",pathToRecon,school,currentday));
-    
+  bool goAhead = true;
+  while (goAhead && IsInRange(currentday.c_str(), dateOut)) {
+
+    struct stat info;
+
+    std::string strdir = pathToRecon;
+    strdir += '/';
+    strdir += school;
+    strdir += '/';
+    strdir += currentday;
+
+    if(stat(strdir.c_str(),&info)){
+      currentday = NextDay(currentday.c_str());
+      continue;
+    }
+
+    directory dir = open_dir(strdir.c_str());
+  
     std::vector<std::string> file_dot_root = matching_items(dir, ".*\.root"); // la stringa passata alla funzione è una regular expression
 
     nfile=file_dot_root.size();
     for(int i=0;i<nfile;i++){
-//      std::cout << i << ")" << file_dot_root.at(i)<< std::endl;
-      std::string filewithpath = Form("%s/%s/%s/",pathToRecon,school,currentday);
+//      std::cout << "path -> " << pathToRecon << "/" << school << "/" << currentday<< std::endl;
+      std::string filewithpath = pathToRecon;
+      filewithpath += '/';
+      filewithpath += school;
+      filewithpath += '/';
+      filewithpath += currentday;
+      filewithpath += '/';
       filewithpath += file_dot_root.at(i);
-      ProcessSingleFile(filewithpath.c_str(),outCSV,nvar,isRoot,reqPressure,cutBase);
-      
+      if(ProcessSingleFile(filewithpath.c_str(),outCSV,nvar,isRoot,reqPressure,cutBase) == 100){
+         goAhead = false;      
+         i=nfile-1;
+      }
     }       
   
     ++ndays;
+    currentday = NextDay(currentday.c_str());
 
-    currentday = NextDay(currentday);
   }
 
   if (ndays == 0) {
@@ -227,7 +255,6 @@ char* NextDay(const char* currentday)
 {
   Int_t dayPerMonth[12]
       = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
   date const day = parse_date(currentday);
   int y = std::get<0>(day);
   int m = std::get<1>(day);
@@ -252,6 +279,7 @@ char* NextDay(const char* currentday)
 
 bool IsInRange(const char* currentday, const char* lastday)
 {
+
   date const current = parse_date(currentday);
   date const last = parse_date(lastday);
 
@@ -275,7 +303,6 @@ bool IsInRange(const char* currentday, const char* lastday)
 
   if (d2 >= d1)
     return true;
-
   return false;
 }
 
@@ -284,7 +311,8 @@ bool CfrString(const char* str1, const char* str2)
   return strncmp(str1, str2, 100) == 0;
 }
 
-bool ProcessSingleFile(const char *filename,std::ofstream &outCSV,Int_t nvar,bool isRoot,bool reqPressure,TString &cut){
+int ProcessSingleFile(const char *filename,std::ofstream &outCSV,Int_t nvar,bool isRoot,bool reqPressure,TString &cut){
+//  std::cout << filename << std::endl;
   TFile fin(filename);
   TTree *tree = (TTree *) fin.Get("Events");
   if(!tree) return 1;
@@ -294,9 +322,11 @@ bool ProcessSingleFile(const char *filename,std::ofstream &outCSV,Int_t nvar,boo
   weather->GetEvent(0);
   Float_t pressure = weather->GetLeaf("Pressure")->GetValue();
 
-  Long64_t const nmaxentr = 12500000 / nvar;
+  Long64_t const nmaxentr = 6500000 / nvar;
 
-  if(ntotevent > nmaxentr) return 1;
+  if(ntotevent >= nmaxentr){
+     return 100;
+  }
 
   int nentries = chain->GetEntriesFast();
 
@@ -373,6 +403,6 @@ bool ProcessSingleFile(const char *filename,std::ofstream &outCSV,Int_t nvar,boo
       }
     }
   }
-  
+
   if(chain) delete chain;
 }
