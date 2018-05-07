@@ -10,10 +10,6 @@
 auto dircloser = [](DIR* dir) { return closedir(dir); };
 using directory = std::unique_ptr<DIR, decltype(dircloser)>;
 
-inline bool comparator (const std::string &a, const std::string &b) {
-        return a<b;
-}
-
 inline directory open_dir(std::string const& path)
 {
   auto dir = opendir(path.c_str());
@@ -36,7 +32,7 @@ inline std::vector<std::string> ls(directory& dir)
     ret.push_back(element->d_name);
   }
 
-  std::sort(ret.begin(), ret.end(), comparator);
+  std::sort(ret.begin(), ret.end());
   
 
   return ret;
