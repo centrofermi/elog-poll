@@ -187,8 +187,8 @@ int main(int argc, char** argv)
     }
 
     directory dir = open_dir(strdir.c_str());
-  
-    std::vector<std::string> file_dot_root = matching_items(dir, ".*\.root"); // la stringa passata alla funzione è una regular expression
+
+    std::vector<std::string> file_dot_root = matching_items(dir, ".*\\.root"); // la stringa passata alla funzione è una regular expression
 
     nfile=file_dot_root.size();
     for(int i=0;i<nfile;i++){
