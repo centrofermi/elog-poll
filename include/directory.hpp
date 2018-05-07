@@ -39,14 +39,6 @@ std::vector<std::string> ls(directory& dir)
   return ret;
 }
 
-//  auto begin = std::sregex_iterator(
-//      std::begin(list)
-//    , std::end(list)
-//    , regex
-//  );
-//
-//  auto const end = std::sregex_iterator();
-
 inline
 std::vector<std::string> matching_items(directory& dir, std::string pattern)
 {
