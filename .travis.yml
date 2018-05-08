@@ -47,7 +47,7 @@ jobs:
         - cd build
         - export CXX=g++-4.9
         - export ROOTSYS=/usr
-        - cmake ../ -DBUILD_TESTING=ON
+        - cmake ../
         - make
         - make test
         - cd ..
