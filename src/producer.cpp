@@ -20,7 +20,6 @@ bool CfrString(const char* str1, const char* str2);
 
 int main(int argc, char** argv)
 {
-
   gErrorIgnoreLevel = kFatal;
 
   const char* pathToRecon = "/recon2";
@@ -40,6 +39,7 @@ int main(int argc, char** argv)
     std::cout << "Error: CSV or ROOT should be set!\n";
     return 11;  // first argument should be CSV or ROOT
   }
+
   bool isTXT = !isRoot;
 
   const char* school = argv[2];
@@ -48,10 +48,7 @@ int main(int argc, char** argv)
   const char* dateIn = argv[3];
   const char* dateOut = argv[4];
 
-  TString cutMy(Form("(%s)", argv[5]));
-  if (CfrString(argv[5], "")) {
-    cutMy = "(1)";
-  }
+  TString cutMy(CfrString(argv[5], "") ? "(1)" : argv[5]);
 
   const Int_t nmaxvar = 20;
   TString var[nmaxvar];
