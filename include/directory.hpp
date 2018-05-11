@@ -36,6 +36,8 @@ std::vector<std::string> ls(directory& dir)
     ret.push_back(element->d_name);
   }
 
+  std::sort(ret.begin(), ret.end());
+
   return ret;
 }
 
