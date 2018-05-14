@@ -83,7 +83,7 @@ class Variable
 
   int i(int val)
   {
-    m_storage.ivar = val;
+    return m_storage.ivar = val;
   }
 
   float f(float val)
