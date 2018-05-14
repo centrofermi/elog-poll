@@ -3,6 +3,8 @@
 #include <string>
 #include <sstream>
 #include <tuple>
+#include <stdexcept>
+#include <vector>
 #include <stdlib.h>
 #include <cstdio>
 #include <TFile.h>
@@ -13,11 +15,53 @@
 #include <TString.h>
 #include <TBranch.h>
 
+#include <directory.hpp>
+
 using date = std::tuple<int, int, int>;
 
 std::string NextDay(std::string const& currentday);
 bool IsInRange(std::string const& currentday, std::string const& lastday);
 bool CfrString(const char* str1, const char* str2);
+
+std::vector<std::string> fileset(
+    std::string const& beg_date
+  , std::string const& end_date
+  , std::string const& telescope
+  , bool MC
+  , std::size_t max_days = 30
+) {
+  std::string const pathToRecon = MC ? "/MC" : "/recon2";
+  std::string const schoolInFile = MC ? std::string("MONT-01") : telescope;
+
+  std::vector<std::string> ret;
+
+  std::string currentday = beg_date;
+  std::size_t ndays = 0;
+  while (IsInRange(currentday, end_date) && ndays < max_days) {
+    auto const folder_name = pathToRecon + '/'
+      + telescope + '/'
+      + currentday + '/';
+
+    try {
+      auto dir = open_dir(folder_name);
+      auto list = matching_items(dir, schoolInFile + ".*dst\\.root");
+
+      std::for_each(
+          std::begin(list)
+        , std::end(list)
+        , [&folder_name, &ret](std::string const& item) {
+            ret.emplace_back(folder_name + item);
+          }
+      );
+
+      ++ndays;
+    } catch (...) {}
+
+    currentday = NextDay(currentday);
+  }
+
+  return ret;
+}
 
 int main(int argc, char** argv)
 {
