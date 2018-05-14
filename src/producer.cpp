@@ -269,8 +269,6 @@ int main(int argc, char** argv)
 {
   gErrorIgnoreLevel = kFatal;
 
-  const char* pathToRecon = "/recon2";
-
   if (argc < 9) {
     std::cout <<
         "Error: Something is missing (please check your submission)!\n";
@@ -287,116 +285,37 @@ int main(int argc, char** argv)
     return 11;  // first argument should be CSV or ROOT
   }
 
-  bool isTXT = !isRoot;
-
   const char* school = argv[2];
-  const char* schoolInFile = argv[2];
 
   const char* dateIn = argv[3];
   const char* dateOut = argv[4];
 
   TString cutMy(CfrString(argv[5], "") ? "(1)" : argv[5]);
 
-  const Int_t nmaxvar = 20;
-  TString var[nmaxvar];
-  const char* type[nmaxvar];
-  void* addvar[nmaxvar];
-  Int_t ivar[nmaxvar];
-  Float_t fvar[nmaxvar];
-  bool isInteger[nmaxvar];
 
   bool const is_mc = CfrString(argv[6], "1");
 
   if (is_mc) {
-    pathToRecon = "/MC";
-
     // temporary: data set to 1st October 2017
     dateIn = "2017-10-01";
     dateOut = "2017-10-01";
-    schoolInFile = "MONT-01";
   }
 
-  Int_t nvar = 0;
-  for (Int_t k = 8; k < argc; k += 2) {
-    type[nvar] = argv[k - 1];
-    var[nvar] = argv[k];
-    nvar++;
-    if (nvar == nmaxvar)
-      k = argc;
+  std::vector<Variable> variables;
+  for (int k = 8; k < argc; k += 2) {
+    variables.emplace_back(Variable(argv[k], argv[k - 1]));
   }
 
-  if (nvar == 0) {
+  if (variables.empty()) {
     std::cout << "Error: At least one variable is needed!\n";
     return 12;
   }
 
-  for (Int_t j = 0; j < nvar; j++) {
-    if (CfrString(type[j], "I")) {
-      addvar[j] = &(ivar[j]);
-      isInteger[j] = true;
-    } else {
-      addvar[j] = &(fvar[j]);
-      isInteger[j] = false;
-    }
-  }
+  auto const fs = fileset(dateIn, dateOut, school, is_mc);
 
-  TString cutBase("(StatusCode==0)&&");
-
-  const char* currentday = dateIn;
-
-  Int_t ndays = 0;
-  int nfile = 0;
-
-  TChain chain("Events");
-
-  while (IsInRange(currentday, dateOut) && ndays < 30) {
-    std::ostringstream oss;
-
-    oss
-      << pathToRecon << '/'
-      << school << '/'
-      << currentday << '/'
-      << schoolInFile << "*dst.root";
-
-    nfile += chain.Add(oss.str().c_str());
-
-    ++ndays;
-
-    currentday = NextDay(currentday);
-  }
-
-  if (ndays == 0) {
+  if (fs.empty()) {
     std::cout << "Error: No data available in the requested period!\n";
     return 1;
-  }
-
-  if (!nfile) {
-    std::cout << "Error: No data available in the requested period!\n";
-    return 3;
-  }
-
-  if (!chain.GetEntriesFast()) {
-    std::cout << "Error: No data available in the requested period!\n";
-    return 4;
-  }
-
-  // minimal info
-  chain.SetBranchStatus("*", 0);
-  chain.SetBranchStatus("StatusCode", 1);
-  chain.SetBranchStatus("XDir", 1);
-  chain.SetBranchStatus("YDir", 1);
-  chain.SetBranchStatus("ZDir", 1);
-
-  // variable to add pressure as an option for the output
-  bool reqPressure = false;
-
-  for (Int_t j = 0; j < nvar; j++) {
-    if (!(var[j].Contains("Theta") || var[j].Contains("Phi")))
-      chain.SetBranchStatus(var[j].Data(), 1);
-
-    if (var[j].Contains("Pressure")) {
-      reqPressure = true;
-    }
   }
 
   if (cutMy.Contains("Theta")) {
@@ -406,141 +325,29 @@ int main(int argc, char** argv)
     cutMy.ReplaceAll(
         "Phi", "TMath::ATan2(YDir[0],XDir[0])*TMath::RadToDeg()");
   }
-
-  if (cutMy.Contains("RunNumber"))
-    chain.SetBranchStatus("RunNumber", 1);
-  if (cutMy.Contains("Seconds"))
-    chain.SetBranchStatus("Seconds", 1);
-  if (cutMy.Contains("Nanoseconds"))
-    chain.SetBranchStatus("Nanoseconds", 1);
   if (cutMy.Contains("ChiSquare")) {
-    chain.SetBranchStatus("ChiSquare", 1);
     cutMy.ReplaceAll("ChiSquare", "ChiSquare[0]");
   }
   if (cutMy.Contains("TimeOfFlight")) {
-    chain.SetBranchStatus("TimeOfFlight", 1);
     cutMy.ReplaceAll("TimeOfFlight", "TimeOfFlight[0]");
   }
   if (cutMy.Contains("TrackLength")) {
-    chain.SetBranchStatus("TrackLength", 1);
     cutMy.ReplaceAll("TrackLength", "TrackLength[0]");
   }
-  if (cutMy.Contains("DeltaTime"))
-    chain.SetBranchStatus("DeltaTime", 1);
 
-  cutBase += cutMy;
+  TString const cutBase = TString("(StatusCode==0)&&") + cutMy;
 
   std::ostringstream oss;
   oss << "/tmp/" << school << "from" << dateIn << "to" << dateOut << (isRoot ? ".root" : ".csv");
 
   std::string const outname = oss.str();
 
-  // before to apply cuts add extra branch for pressure
-  TTree *cloned = chain.CloneTree();
-  if (reqPressure) {
-    Float_t pressure = 0;
-    TBranch *bPr = cloned->Branch("Pressure", &pressure, "Pressure/F");
-    TString namefile;
-    for (Int_t i = 0; i < chain.GetEntries(); ++i) {
-      chain.GetEvent(i);
-
-      if (namefile.CompareTo(chain.GetFile()->GetName())) {
-        // get pressure
-        TFile ftemp(chain.GetFile()->GetName());
-        TTree* weather = (TTree *) ftemp.Get("Weather");
-        weather->GetEvent(0);
-        pressure = weather->GetLeaf("Pressure")->GetValue();
-        namefile = chain.GetFile()->GetName();
-      }
-      bPr->Fill();
-    }
-  }
-
-  TTree* const workingtree = cloned->CopyTree(cutBase.Data());
-
-  Long64_t const nmaxentr = 12500000 / nvar;
-  int const nentries = TMath::Min(workingtree->GetEntriesFast(), nmaxentr);
+  std::size_t const nmaxentr = 12500000 / variables.size();
 
   if (isRoot) {
-    TFile foutRoot(outname.c_str(), "RECREATE");
-    TTree outputTree("eee", "eee");
-    for (int j = 0; j != nvar; ++j) {
-      outputTree.Branch(
-          var[j].Data(), addvar[j], Form("%s/%s", var[j].Data(), type[j]));
-    }
-
-    for (int i = 0; i != nentries; ++i) {
-      workingtree->GetEvent(i);
-
-      Float_t const xd = workingtree->GetLeaf("XDir")->GetValue();
-      Float_t const yd = workingtree->GetLeaf("YDir")->GetValue();
-      Float_t const zd = workingtree->GetLeaf("ZDir")->GetValue();
-
-      for (int j = 0; j != nvar; ++j) {
-        if (var[j].Contains("Theta")) {
-          fvar[j] = TMath::ACos(zd) * TMath::RadToDeg();
-        } else if (var[j].Contains("Phi")) {
-          fvar[j] = TMath::ATan2(yd, xd) * TMath::RadToDeg();
-        } else {
-          if (isInteger[j]) {
-            ivar[j] = workingtree->GetLeaf(var[j].Data())->GetValue();
-          } else {
-            fvar[j] = workingtree->GetLeaf(var[j].Data())->GetValue();
-          }
-        }
-      }
-      outputTree.Fill();
-    }
-
-//    TFile foutRoot(outname.c_str(), "RECREATE");
-    outputTree.Write();
-    foutRoot.Close();
+    rootout(fs, variables, outname, cutBase, nmaxentr);
   } else {
-    std::ofstream outCSV(outname.c_str());
-    outCSV << std::fixed;
-
-    for (int i = 0; i != nvar - 1; ++i) {
-      outCSV << var[i].Data() << ',';
-    }
-    outCSV << var[nvar - 1] << '\n';
-
-    for (int i = 0; i != nentries; ++i) {
-      workingtree->GetEvent(i);
-
-      Float_t const xd = workingtree->GetLeaf("XDir")->GetValue();
-      Float_t const yd = workingtree->GetLeaf("YDir")->GetValue();
-      Float_t const zd = workingtree->GetLeaf("ZDir")->GetValue();
-
-      for (int j = 0; j != nvar - 1; ++j) {
-        if (var[j].Contains("Theta")) {
-          outCSV << TMath::ACos(zd) * TMath::RadToDeg() << ',';
-        } else if (var[j].Contains("Phi")) {
-          outCSV << TMath::ATan2(yd, xd) * TMath::RadToDeg() << ',';
-        } else {
-          if (isInteger[j]) {
-            outCSV << static_cast<int64_t>(workingtree->GetLeaf(var[j].Data())->GetValue()) << ',';
-          } else {
-            outCSV << workingtree->GetLeaf(var[j].Data())->GetValue() << ',';
-          }
-        }
-      }
-
-      {
-        int const j = nvar - 1;
-
-        if (var[j].Contains("Theta")) {
-          outCSV << TMath::ACos(zd) * TMath::RadToDeg() << '\n';
-        } else if (var[j].Contains("Phi")) {
-          outCSV << TMath::ATan2(yd, xd) * TMath::RadToDeg() << '\n';
-        } else {
-          if (isInteger[j]) {
-            outCSV << static_cast<int64_t>(workingtree->GetLeaf(var[j].Data())->GetValue()) << '\n';
-          } else {
-            outCSV << workingtree->GetLeaf(var[j].Data())->GetValue() << '\n';
-          }
-        }
-      }
-    }
+    csvout(fs, variables, outname, cutBase, nmaxentr);
   }
 
   std::cout << outname << '\n';
