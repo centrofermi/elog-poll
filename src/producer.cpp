@@ -4,6 +4,7 @@
 #include <sstream>
 #include <tuple>
 #include <stdlib.h>
+#include <cstdio>
 #include <TFile.h>
 #include <TChain.h>
 #include <TString.h>
@@ -14,8 +15,8 @@
 
 using date = std::tuple<int, int, int>;
 
-char* NextDay(const char* currentday);
-bool IsInRange(const char* currentday, const char* lastday);
+std::string NextDay(std::string const& currentday);
+bool IsInRange(std::string const& currentday, std::string const& lastday);
 bool CfrString(const char* str1, const char* str2);
 
 int main(int argc, char** argv)
@@ -301,8 +302,9 @@ int main(int argc, char** argv)
   _exit(0);
 }
 
-date parse_date(char const* str)
+date parse_date(std::string const& string)
 {
+  char const* str = string.c_str();
   int y = 0, m = 0, d = 0;
   sscanf(str, "%4i", &y);
   if (str[5] != '0')
@@ -317,7 +319,7 @@ date parse_date(char const* str)
   return std::make_tuple(y, m, d);
 }
 
-char* NextDay(const char* currentday)
+std::string NextDay(std::string const& currentday)
 {
   Int_t dayPerMonth[12]
       = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
@@ -341,10 +343,12 @@ char* NextDay(const char* currentday)
     y++;
   }
 
-  return Form("%i-%02i-%02i", y, m, d);
+  char buffer[12];
+  std::snprintf(buffer, 12, "%i-%02i-%02i", y, m, d);
+  return buffer;
 }
 
-bool IsInRange(const char* currentday, const char* lastday)
+bool IsInRange(std::string const& currentday, std::string const& lastday)
 {
   date const current = parse_date(currentday);
   date const last = parse_date(lastday);
