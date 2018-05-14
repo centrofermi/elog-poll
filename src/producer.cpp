@@ -23,6 +23,91 @@ std::string NextDay(std::string const& currentday);
 bool IsInRange(std::string const& currentday, std::string const& lastday);
 bool CfrString(const char* str1, const char* str2);
 
+class Variable
+{
+  union {
+    int ivar;
+    float fvar;
+  } m_storage;
+
+  std::string m_name;
+
+ public:
+
+  enum type_t { INT, FLOAT };
+
+  Variable(std::string const& name, std::string const& type)
+  : m_name(name)
+  , m_type(make_type(type))
+  {}
+
+  void* storage()
+  {
+    return static_cast<void*>(&m_storage);
+  }
+
+  std::string name() const
+  {
+    return m_name;
+  }
+
+  std::string stype() const
+  {
+    return is_integer() ? "I" : "F";
+  }
+
+  type_t type() const
+  {
+    return m_type;
+  }
+
+  bool is_integer() const
+  {
+    return m_type == INT;
+  }
+
+  std::string rootname() const
+  {
+    return name() + '/' + stype();
+  }
+
+  int i() const
+  {
+    return m_storage.ivar;
+  }
+
+  float f() const
+  {
+    return m_storage.fvar;
+  }
+
+  int i(int val)
+  {
+    m_storage.ivar = val;
+  }
+
+  float f(float val)
+  {
+    return m_storage.fvar = val;
+  }
+
+  static
+  type_t make_type(std::string const& t)
+  {
+    if (t == "I") {
+      return INT;
+    } else if (t == "F") {
+      return FLOAT;
+    } else {
+      throw std::runtime_error("Unrecognised type " + t);
+    }
+  }
+
+ private:
+
+  type_t m_type;
+};
+
 std::vector<std::string> fileset(
     std::string const& beg_date
   , std::string const& end_date
