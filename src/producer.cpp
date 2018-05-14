@@ -5,7 +5,7 @@
 #include <tuple>
 #include <stdexcept>
 #include <vector>
-#include <stdlib.h>
+#include <cstdlib>
 #include <cstdio>
 #include <TFile.h>
 #include <TChain.h>
