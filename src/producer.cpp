@@ -148,6 +148,63 @@ std::vector<std::string> fileset(
   return ret;
 }
 
+void rootout(
+    std::vector<std::string> const& fileset
+  , std::vector<Variable>& vars
+  , std::string const& outname
+  , TString const& cut
+  , std::size_t maxentries
+) {
+  TTree outputTree("eee", "eee");
+  for (auto& var : vars) {
+    outputTree.Branch(var.name().c_str(), var.storage(), var.rootname().c_str());
+  }
+
+  std::size_t total = 0;
+  for (auto const& fname : fileset) {
+    TFile file(fname.c_str());
+
+    // Extract the pressure
+    auto weather = dynamic_cast<TTree*>(file.Get("Weather"));
+    weather->GetEvent(0);
+    auto const pressure = weather->GetLeaf("Pressure")->GetValue();
+
+    // Extract the events
+    auto tree = dynamic_cast<TTree*>(file.Get("Events"));
+    auto workingtree = tree->CopyTree(cut.Data());
+
+    auto const nentries = workingtree->GetEntriesFast();
+    for (int i = 0; i < nentries && total < maxentries; ++i, ++total) {
+      workingtree->GetEvent(i);
+
+      Float_t const xd = workingtree->GetLeaf("XDir")->GetValue();
+      Float_t const yd = workingtree->GetLeaf("YDir")->GetValue();
+      Float_t const zd = workingtree->GetLeaf("ZDir")->GetValue();
+
+      for (auto& var : vars) {
+        if (var.name() == "Pressure") {
+          var.f(pressure);
+        } else if (var.name() == "Theta") {
+          var.f(TMath::ACos(zd) * TMath::RadToDeg());
+        } else if (var.name() == "Phi") {
+          var.f(TMath::ATan2(yd, xd) * TMath::RadToDeg());
+        } else {
+          if (var.is_integer()) {
+            var.i(workingtree->GetLeaf(var.name().c_str())->GetValue());
+          } else {
+            var.i(workingtree->GetLeaf(var.name().c_str())->GetValue());
+          }
+        }
+      }
+      outputTree.Fill();
+    }
+  }
+
+  TFile foutRoot(outname.c_str(), "RECREATE");
+  outputTree.Write();
+  foutRoot.Close();
+}
+
 int main(int argc, char** argv)
 {
   gErrorIgnoreLevel = kFatal;
