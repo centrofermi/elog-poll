@@ -205,6 +205,66 @@ void rootout(
   foutRoot.Close();
 }
 
+void csvout(
+    std::vector<std::string> const& fileset
+  , std::vector<Variable>& vars
+  , std::string const& outname
+  , TString const& cut
+  , std::size_t maxentries
+) {
+  std::ofstream outCSV(outname.c_str());
+  outCSV << std::fixed;
+
+  auto const nvar = vars.size();
+
+  for (std::size_t i = 0; i != nvar - 1; ++i) {
+    outCSV << vars[i].name() << ',';
+  }
+
+  outCSV << vars[nvar - 1].name() << '\n';
+
+  std::size_t total = 0;
+  for (auto const& fname : fileset) {
+    TFile file(fname.c_str());
+
+    // Extract the pressure
+    auto weather = dynamic_cast<TTree*>(file.Get("Weather"));
+    weather->GetEvent(0);
+    auto const pressure = weather->GetLeaf("Pressure")->GetValue();
+
+    // Extract the events
+    auto tree = dynamic_cast<TTree*>(file.Get("Events"));
+    auto workingtree = tree->CopyTree(cut.Data());
+
+    auto const nentries = workingtree->GetEntriesFast();
+    for (int i = 0; i < nentries && total < maxentries; ++i, ++total) {
+      workingtree->GetEvent(i);
+
+      Float_t const xd = workingtree->GetLeaf("XDir")->GetValue();
+      Float_t const yd = workingtree->GetLeaf("YDir")->GetValue();
+      Float_t const zd = workingtree->GetLeaf("ZDir")->GetValue();
+
+      for (std::size_t j = 0; j != nvar; ++j) {
+        auto const sep = j != nvar - 1 ? ',' : '\n';
+
+        if (vars[j].name() == "Pressure") {
+          outCSV << pressure << sep;
+        } else if (vars[j].name() == "Theta") {
+          outCSV << TMath::ACos(zd) * TMath::RadToDeg() << sep;
+        } else if (vars[j].name() == "Phi") {
+          outCSV << TMath::ATan2(yd, xd) * TMath::RadToDeg() << sep;
+        } else {
+          if (vars[j].is_integer()) {
+            outCSV << static_cast<int64_t>(workingtree->GetLeaf(vars[j].name().c_str())->GetValue()) << sep;
+          } else {
+            outCSV << workingtree->GetLeaf(vars[j].name().c_str())->GetValue() << sep;
+          }
+        }
+      }
+    }
+  }
+}
+
 int main(int argc, char** argv)
 {
   gErrorIgnoreLevel = kFatal;
