@@ -190,7 +190,7 @@ void rootout(
           if (var.is_integer()) {
             var.i(workingtree->GetLeaf(var.name().c_str())->GetValue());
           } else {
-            var.i(workingtree->GetLeaf(var.name().c_str())->GetValue());
+            var.f(workingtree->GetLeaf(var.name().c_str())->GetValue());
           }
         }
       }
