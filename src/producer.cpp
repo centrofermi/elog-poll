@@ -7,6 +7,8 @@
 #include <vector>
 #include <cstdlib>
 #include <cstdio>
+#undef NDEBUG
+#include <cassert>
 #include <TFile.h>
 #include <TTree.h>
 #include <TLeaf.h>
@@ -71,21 +73,25 @@ class Variable
 
   int i() const
   {
+    assert(is_integer());
     return m_storage.ivar;
   }
 
   float f() const
   {
+    assert(!is_integer());
     return m_storage.fvar;
   }
 
   int i(int val)
   {
+    assert(is_integer());
     return m_storage.ivar = val;
   }
 
   float f(float val)
   {
+    assert(!is_integer());
     return m_storage.fvar = val;
   }
 
