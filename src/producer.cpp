@@ -273,90 +273,97 @@ int main(int argc, char** argv)
 {
   gErrorIgnoreLevel = kFatal;
 
-  if (argc < 9) {
-    std::cout <<
-        "Error: Something is missing (please check your submission)!\n";
-    return 10;  // at least 8 arguments needed
+  try {
+    if (argc < 9) {
+      std::cout <<
+          "Error: Something is missing (please check your submission)!\n";
+      return 10;  // at least 8 arguments needed
+    }
+
+    bool isRoot = true;
+    if (CfrString(argv[1], "ROOT")) {
+      isRoot = true;
+    } else if (CfrString(argv[1], "CSV")) {
+      isRoot = false;
+    } else {
+      std::cout << "Error: CSV or ROOT should be set!\n";
+      return 11;  // first argument should be CSV or ROOT
+    }
+
+    const char* school = argv[2];
+
+    const char* dateIn = argv[3];
+    const char* dateOut = argv[4];
+
+    TString cutMy(CfrString(argv[5], "") ? "(1)" : argv[5]);
+
+    bool const is_mc = CfrString(argv[6], "1");
+
+    if (is_mc) {
+      // temporary: data set to 1st October 2017
+      dateIn = "2017-10-01";
+      dateOut = "2017-10-01";
+    }
+
+    std::vector<Variable> variables;
+    for (int k = 8; k < argc; k += 2) {
+      variables.emplace_back(Variable(argv[k], argv[k - 1]));
+    }
+
+    if (variables.empty()) {
+      std::cout << "Error: At least one variable is needed!\n";
+      return 12;
+    }
+
+    auto const fs = fileset(dateIn, dateOut, school, is_mc);
+
+    if (fs.empty()) {
+      std::cout << "Error: No data available in the requested period!\n";
+      return 1;
+    }
+
+    if (cutMy.Contains("Theta")) {
+      cutMy.ReplaceAll("Theta", "TMath::ACos(ZDir[0])*TMath::RadToDeg()");
+    }
+    if (cutMy.Contains("Phi")) {
+      cutMy.ReplaceAll(
+          "Phi", "TMath::ATan2(YDir[0],XDir[0])*TMath::RadToDeg()");
+    }
+    if (cutMy.Contains("ChiSquare")) {
+      cutMy.ReplaceAll("ChiSquare", "ChiSquare[0]");
+    }
+    if (cutMy.Contains("TimeOfFlight")) {
+      cutMy.ReplaceAll("TimeOfFlight", "TimeOfFlight[0]");
+    }
+    if (cutMy.Contains("TrackLength")) {
+      cutMy.ReplaceAll("TrackLength", "TrackLength[0]");
+    }
+
+    TString const cutBase = TString("(StatusCode==0)&&") + cutMy;
+
+    std::ostringstream oss;
+    oss << "/tmp/" << school << "from" << dateIn << "to" << dateOut << (isRoot ? ".root" : ".csv");
+
+    std::string const outname = oss.str();
+
+    std::size_t const nmaxentr = 12500000 / variables.size();
+
+    if (isRoot) {
+      rootout(fs, variables, outname, cutBase, nmaxentr);
+    } else {
+      csvout(fs, variables, outname, cutBase, nmaxentr);
+    }
+
+    std::cout << outname << '\n';
+    std::cout.flush();
+    _exit(0);
+  } catch (std::exception const& e) {
+    std::cout << "Error: " << e.what() << '\n';
+    return EXIT_FAILURE;
+  } catch (...) {
+    std::cout << "Unknown error\n";
+    return EXIT_FAILURE;
   }
-
-  bool isRoot = true;
-  if (CfrString(argv[1], "ROOT")) {
-    isRoot = true;
-  } else if (CfrString(argv[1], "CSV")) {
-    isRoot = false;
-  } else {
-    std::cout << "Error: CSV or ROOT should be set!\n";
-    return 11;  // first argument should be CSV or ROOT
-  }
-
-  const char* school = argv[2];
-
-  const char* dateIn = argv[3];
-  const char* dateOut = argv[4];
-
-  TString cutMy(CfrString(argv[5], "") ? "(1)" : argv[5]);
-
-
-  bool const is_mc = CfrString(argv[6], "1");
-
-  if (is_mc) {
-    // temporary: data set to 1st October 2017
-    dateIn = "2017-10-01";
-    dateOut = "2017-10-01";
-  }
-
-  std::vector<Variable> variables;
-  for (int k = 8; k < argc; k += 2) {
-    variables.emplace_back(Variable(argv[k], argv[k - 1]));
-  }
-
-  if (variables.empty()) {
-    std::cout << "Error: At least one variable is needed!\n";
-    return 12;
-  }
-
-  auto const fs = fileset(dateIn, dateOut, school, is_mc);
-
-  if (fs.empty()) {
-    std::cout << "Error: No data available in the requested period!\n";
-    return 1;
-  }
-
-  if (cutMy.Contains("Theta")) {
-    cutMy.ReplaceAll("Theta", "TMath::ACos(ZDir[0])*TMath::RadToDeg()");
-  }
-  if (cutMy.Contains("Phi")) {
-    cutMy.ReplaceAll(
-        "Phi", "TMath::ATan2(YDir[0],XDir[0])*TMath::RadToDeg()");
-  }
-  if (cutMy.Contains("ChiSquare")) {
-    cutMy.ReplaceAll("ChiSquare", "ChiSquare[0]");
-  }
-  if (cutMy.Contains("TimeOfFlight")) {
-    cutMy.ReplaceAll("TimeOfFlight", "TimeOfFlight[0]");
-  }
-  if (cutMy.Contains("TrackLength")) {
-    cutMy.ReplaceAll("TrackLength", "TrackLength[0]");
-  }
-
-  TString const cutBase = TString("(StatusCode==0)&&") + cutMy;
-
-  std::ostringstream oss;
-  oss << "/tmp/" << school << "from" << dateIn << "to" << dateOut << (isRoot ? ".root" : ".csv");
-
-  std::string const outname = oss.str();
-
-  std::size_t const nmaxentr = 12500000 / variables.size();
-
-  if (isRoot) {
-    rootout(fs, variables, outname, cutBase, nmaxentr);
-  } else {
-    csvout(fs, variables, outname, cutBase, nmaxentr);
-  }
-
-  std::cout << outname << '\n';
-  std::cout.flush();
-  _exit(0);
 }
 
 date parse_date(std::string const& string)
