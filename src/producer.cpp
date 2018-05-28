@@ -275,9 +275,7 @@ int main(int argc, char** argv)
 
   try {
     if (argc < 9) {
-      std::cout <<
-          "Error: Something is missing (please check your submission)!\n";
-      return 10;  // at least 8 arguments needed
+      throw std::runtime_error("Something is missing (programming error)!");
     }
 
     bool isRoot = true;
@@ -286,8 +284,7 @@ int main(int argc, char** argv)
     } else if (CfrString(argv[1], "CSV")) {
       isRoot = false;
     } else {
-      std::cout << "Error: CSV or ROOT should be set!\n";
-      return 11;  // first argument should be CSV or ROOT
+      throw std::runtime_error("CSV or ROOT should be set!");
     }
 
     const char* school = argv[2];
@@ -311,15 +308,13 @@ int main(int argc, char** argv)
     }
 
     if (variables.empty()) {
-      std::cout << "Error: At least one variable is needed!\n";
-      return 12;
+      throw std::runtime_error("At least one variable is needed!");
     }
 
     auto const fs = fileset(dateIn, dateOut, school, is_mc);
 
     if (fs.empty()) {
-      std::cout << "Error: No data available in the requested period!\n";
-      return 1;
+      throw std::runtime_error("No data available in the requested period!");
     }
 
     if (cutMy.Contains("Theta")) {
