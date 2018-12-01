@@ -133,6 +133,16 @@ function handler() {
   local -r start_time="$(echo "${data}" | "${ELOG_PARSER}" '%[Start time]')"
   local -r stop_time="$(echo "${data}" | "${ELOG_PARSER}" '%[Stop time]')"
 
+  if [ "${start_time}" == "" ]; then
+    reply_post "${id}" "Invalid query: you must specify a start date"
+    return 0
+  fi
+
+  if [ "${stop_time}" == "" ]; then
+    reply_post "${id}" "Invalid query: you must specify a stop date"
+    return 0
+  fi
+
   local -r start_date="$(epoch2date "${start_time}")"
   local -r stop_date="$(epoch2date "${stop_time}")"
 
@@ -154,6 +164,11 @@ function handler() {
       options+=("${type}" "${parameter}")
     fi
   done
+
+  if [ "${#options[@]}" == "0" ]; then
+    reply_post "${id}" "Invalid query: you must specify at least one observable"
+    return 0
+  fi
 
   local answer
   answer="$("${ELOG_PRODUCER}" "${format}" "${telescope_id}" \
