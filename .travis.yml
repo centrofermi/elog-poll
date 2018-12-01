@@ -31,14 +31,14 @@ addons:
       - libroot-net-dev
 
 before_install:
-  - docker pull peterdavehello/debian-8-shellcheck
+  - docker pull peterdavehello/shellcheck
   - docker pull buddaci/cppcheck
 
 jobs:
   include:
     - stage: check
       script:
-        - docker run --rm -v $(pwd):/code peterdavehello/debian-8-shellcheck bash -c 'shellcheck /code/*.sh'
+        - docker run --rm -v $(pwd):/code peterdavehello/shellcheck bash -c 'shellcheck /code/*.sh'
         - docker run --rm -v $(pwd):/code buddaci/cppcheck cppcheck /code/src/ /code/include/ /code/test/
     - stage: build
       script:
