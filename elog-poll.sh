@@ -168,6 +168,9 @@ function handler() {
   else
     reply_post "${id}" "Data extraction failed: ${answer}"
   fi
+
+  [ -e "${answer}" ] && rm "${answer}"
+  [ -e "${answer}.zip" ] && rm "${answer}.zip"
 }
 
 # Script begins here
