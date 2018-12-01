@@ -25,7 +25,6 @@ addons:
       - libroot-graf2d-postscript-dev
       - libroot-graf3d-g3d-dev
       - libroot-gui-dev
-      - libroot-gui-dev 
       - libroot-hist-dev
       - libroot-math-matrix-dev
       - libroot-math-physics-dev
