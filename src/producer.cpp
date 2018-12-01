@@ -177,6 +177,10 @@ void rootout(
     auto tree = dynamic_cast<TTree*>(file.Get("Events"));
     auto workingtree = tree->CopyTree(cut.Data());
 
+    if (workingtree == nullptr) {
+      throw std::runtime_error("Invalid cut");
+    }
+
     auto const nentries = workingtree->GetEntriesFast();
     for (int i = 0; i < nentries && total < maxentries; ++i, ++total) {
       workingtree->GetEvent(i);
@@ -239,6 +243,10 @@ void csvout(
     // Extract the events
     auto tree = dynamic_cast<TTree*>(file.Get("Events"));
     auto workingtree = tree->CopyTree(cut.Data());
+
+    if (workingtree == nullptr) {
+      throw std::runtime_error("Invalid cut");
+    }
 
     auto const nentries = workingtree->GetEntriesFast();
     for (int i = 0; i < nentries && total < maxentries; ++i, ++total) {
