@@ -186,6 +186,8 @@ function handler() {
 
   [ -e "${answer}" ] && rm "${answer}"
   [ -e "${answer}.zip" ] && rm "${answer}.zip"
+
+  return 0
 }
 
 # Script begins here
