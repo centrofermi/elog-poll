@@ -112,11 +112,14 @@ function reply_post() {
   local ssl=""
   [ "${ELOG_USES_SSL}" == "y" ] && ssl="-s"
 
-  ${ELOG_EXE}                             \
+  local -r output="$(${ELOG_EXE}          \
     -r "${ID}" -l "${ELOG_BOOK}" "${ssl}" \
     -h "${ELOG_SERVER}" -p "${ELOG_PORT}" \
     -u "${ELOG_USER}" "${ELOG_PASSWORD}"  \
-    "${attachments[@]}" "${message}"
+    "${attachments[@]}" "${message}")"
+
+  echo "${output}"
+  echo "${output}" | grep "successfully transmitted" -c
 }
 
 function epoch2date() {
