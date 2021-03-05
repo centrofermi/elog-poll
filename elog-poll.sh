@@ -85,7 +85,9 @@ function get_last_post_id() {
 }
 
 function set_last_post_id() {
-  echo "$1" >"${ELOG_LAST_POST}"
+  if [ -n "$1" ]; then
+    echo "$1" >"${ELOG_LAST_POST}"
+  fi
 }
 
 function get_post() {
