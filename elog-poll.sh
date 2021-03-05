@@ -138,12 +138,12 @@ function handler() {
 
   if [ "${start_time}" == "" ]; then
     reply_post "${id}" "Invalid query: you must specify a start date"
-    return 0
+    return $?
   fi
 
   if [ "${stop_time}" == "" ]; then
     reply_post "${id}" "Invalid query: you must specify a stop date"
-    return 0
+    return $?
   fi
 
   local -r start_date="$(epoch2date "${start_time}")"
@@ -170,7 +170,7 @@ function handler() {
 
   if [ "${#options[@]}" == "0" ]; then
     reply_post "${id}" "Invalid query: you must specify at least one observable"
-    return 0
+    return $?
   fi
 
   local answer
@@ -182,9 +182,9 @@ function handler() {
   if [ "${return_status}" -eq 0 ]; then
     zip "${answer}.zip" "${answer}"
 
-    reply_post "${id}" "Data extraction succeeded" "${answer}.zip"
+    reply_post "${id}" "Data extraction succeeded" "${answer}.zip" || return 1
   else
-    reply_post "${id}" "Data extraction failed: ${answer}"
+    reply_post "${id}" "Data extraction failed: ${answer}" || return 1
   fi
 
   [ -e "${answer}" ] && rm "${answer}"
